@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>致张伟的一份家庭保障体检</title>
+<style>
+  :root{
+    --navy:#2A3E6E; --navy2:#3D5891; --gold:#C39A45; --amber:#D6883F;
+    --ink:#3A3E47; --soft:#838893; --bg:#FCFBF8; --paper:#FFFFFF;
+    --line:#ECE6D8; --green:#3E8E6E; --red:#C45A3C;
+    --sky:#F1F5FC; --skyline:#DCE5F4; --cream:#FBF4E7; --creamline:#F0E2C9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"微软雅黑","Microsoft YaHei",system-ui,sans-serif;
+    line-height:1.78;font-size:15px;}
+  .wrap{max-width:820px;margin:0 auto;padding:0 22px 60px;}
+  .cover{background:linear-gradient(140deg,#F3F7FD 0%, #FCFBF8 70%);
+    margin:0 -22px 0;padding:50px 40px 40px;border-bottom:3px solid var(--gold);}
+  .cover .eyebrow{color:var(--gold);letter-spacing:4px;font-size:12px;margin:0 0 14px;font-weight:700;}
+  .cover h1{margin:0;font-size:30px;font-weight:700;letter-spacing:1px;color:var(--navy);}
+  .cover .sub{margin:14px 0 0;color:#5A6276;font-size:15px;}
+  .cover .meta{margin-top:24px;font-size:12.5px;color:var(--soft);border-top:1px solid var(--line);padding-top:14px;}
+  section{margin-top:32px;}
+  .lead{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--gold);
+    border-radius:12px;padding:22px 24px;}
+  .lead p{margin:0 0 12px;}
+  .lead p:last-child{margin:0;}
+  .lead .q{color:var(--navy);font-style:italic;}
+  h2{font-size:19px;color:var(--navy);margin:0 0 4px;display:flex;align-items:baseline;gap:10px;}
+  h2 .n{color:var(--gold);font-size:13px;font-weight:700;letter-spacing:1px;}
+  .hint{color:var(--soft);font-size:13px;margin:0 0 16px;}
+  .fam{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px;}
+  .famrow{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+  .person{flex:1 1 130px;min-width:120px;text-align:center;background:var(--sky);
+    border-radius:10px;padding:14px 10px;border:1px solid var(--skyline);}
+  .person.core{background:#FFFCF4;border:2px solid var(--gold);}
+  .person.core .role{color:var(--gold);font-weight:700;}
+  .person .role{font-size:12px;color:var(--soft);}
+  .person .name{font-size:16px;font-weight:700;margin:2px 0 4px;color:var(--navy);}
+  .person .tag{font-size:11.5px;line-height:1.5;color:#6B7180;}
+  .famnote{margin-top:14px;font-size:13px;color:var(--soft);text-align:center;}
+  .famnote b{color:var(--amber);}
+  .risk{background:var(--cream);border:1px solid var(--creamline);border-radius:12px;padding:20px 24px;}
+  .risk b{color:var(--amber);}
+  .dim{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-top:14px;}
+  .dim .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+  .dim .dn{font-size:17px;font-weight:700;color:var(--navy);}
+  .badge{font-size:12px;font-weight:700;padding:3px 11px;border-radius:20px;white-space:nowrap;}
+  .b-big{background:#FBE7DF;color:var(--red);}
+  .b-add{background:#FBF1DC;color:#A9791C;}
+  .b-ok{background:#E2F1EA;color:var(--green);}
+  .b-late{background:#EEF1F8;color:var(--navy2);}
+  .bars{margin:16px 0 4px;}
+  .barline{display:flex;align-items:center;gap:10px;font-size:12.5px;margin-bottom:7px;}
+  .barlabel{width:64px;color:var(--soft);flex:none;}
+  .track{flex:1;background:#F0EEE7;border-radius:6px;height:14px;overflow:hidden;}
+  .fill{height:100%;border-radius:6px;}
+  .fill.cur{background:#C7CBD4;}
+  .fill.tgt{background:linear-gradient(90deg,var(--navy2),#6E8AB8);}
+  .barval{width:80px;text-align:right;flex:none;color:var(--ink);font-weight:600;}
+  .gap{margin-top:10px;font-size:13px;}
+  .gap .num{color:var(--red);font-weight:700;font-size:15px;}
+  .why{margin-top:10px;font-size:14px;color:var(--ink);}
+  .why .k{color:var(--navy);font-weight:700;}
+  .sugg{margin-top:10px;font-size:13.5px;color:var(--navy);background:var(--sky);
+    border-radius:8px;padding:9px 13px;border:1px solid var(--skyline);}
+  .sugg b{color:var(--navy);}
+  /* in-card calculation */
+  .calclabel{font-size:13px;font-weight:700;color:var(--navy);margin:14px 0 8px;
+    display:flex;align-items:center;gap:7px;}
+  .calclabel::before{content:"";width:4px;height:14px;background:var(--gold);border-radius:2px;}
+  .ctable{background:var(--sky);border:1px solid var(--skyline);border-radius:10px;padding:4px 16px;}
+  .crow{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+    padding:8px 0;border-bottom:1px dashed #D7DEEC;font-size:13.5px;}
+  .crow:last-child{border-bottom:none;}
+  .crow .ci{color:var(--ink);}
+  .crow .ci small{display:block;color:var(--soft);font-size:11.5px;margin-top:1px;}
+  .crow .cn{flex:none;font-weight:700;white-space:nowrap;}
+  .cn.plus{color:var(--navy);} .cn.minus{color:var(--green);}
+  .crow.total{border-top:2px solid var(--skyline);border-bottom:none;margin-top:2px;padding-top:10px;}
+  .crow.total .ci{font-weight:700;color:var(--navy);}
+  .crow.total .cn{color:var(--navy);}
+  .crow.reco .ci{font-weight:700;color:var(--amber);}
+  .crow.reco .cn{color:var(--amber);font-size:15px;}
+  .calcnote{font-size:12px;color:var(--soft);margin-top:8px;}
+  .logic{background:var(--cream);border:1px solid var(--creamline);border-radius:10px;
+    padding:11px 15px;font-size:13.5px;}
+  .logic b{color:var(--navy);}
+  .road{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 24px 18px;}
+  .step{display:flex;gap:16px;padding:16px 0;border-bottom:1px dashed var(--line);}
+  .step:last-child{border-bottom:none;}
+  .step .idx{flex:none;width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+  .step.later .idx{background:#D9CFB6;}
+  .step .body b{color:var(--navy);}
+  .step .when{font-size:12px;color:var(--amber);font-weight:700;}
+  .budget{margin-top:14px;background:var(--cream);border:1px solid var(--creamline);border-radius:8px;
+    padding:12px 16px;font-size:13px;}
+  .budget b{color:var(--navy);}
+  .close{background:linear-gradient(135deg,#FBF4E7,#F6EDD8);border:1px solid var(--creamline);
+    border-radius:14px;padding:30px 32px;margin-top:32px;}
+  .close p{margin:0 0 12px;font-size:15px;color:#5A5340;}
+  .close .big{font-size:18px;color:var(--navy);font-weight:700;}
+  .close .gold{color:var(--gold);font-weight:700;}
+  .close b{color:var(--navy);}
+  .disc{margin-top:24px;font-size:11.5px;color:var(--soft);line-height:1.7;
+    border-top:1px solid var(--line);padding-top:16px;}
+  @media print{body{background:#fff;} .dim,.fam,.lead,.road,.risk{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<div class="cover">
+  <p class="eyebrow">家 庭 保 障 体 检 报 告</p>
+  <h1>致张伟的一份家庭保障体检</h1>
+  <p class="sub">在新生命到来之前，给这个家做一次"保障体检"——<br>看清现状，不推销，只把决定权交回到你手里。</p>
+  <p class="meta">受检家庭：张伟先生一家　·　体检日期：2026年　·　由您的专属顾问整理</p>
+</div>
+<div class="wrap">
+
+  <section>
+    <div class="lead">
+      <p>张伟，你好。</p>
+      <p>还记得你说过，自从知道太太怀孕，你开始认真想一件事——<span class="q">"万一哪天我出了意外或大病，老婆和孩子怎么办。"</span></p>
+      <p>这份报告，就是把这份"担心"，变成一张清楚的体检表：你们家现在的保障够不够、哪里有缺口、缺多少，以及最该先补哪一个。</p>
+      <p>没有推销，只有体检。看完它，决定权在你。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">01</span>你的家庭</h2>
+    <div class="fam">
+      <div class="famrow">
+        <div class="person core">
+          <div class="role">家庭经济支柱</div>
+          <div class="name">张伟 · 31</div>
+          <div class="tag">上海私企 · 年收入30万<br>家庭主要收入来源</div>
+        </div>
+        <div class="person">
+          <div class="role">配偶</div>
+          <div class="name">太太</div>
+          <div class="tag">事业单位 · 孕中<br>预产期 2027.3</div>
+        </div>
+        <div class="person">
+          <div class="role">子女</div>
+          <div class="name">宝宝</div>
+          <div class="tag">即将出生<br>家庭的新成员</div>
+        </div>
+        <div class="person">
+          <div class="role">父母</div>
+          <div class="name">江苏老家</div>
+          <div class="tag">有退休金<br>暂无需赡养</div>
+        </div>
+      </div>
+      <p class="famnote">一套月供 19,000 元、还剩 <b>400 万</b> 的房子，连着这一家人的未来。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">02</span>一句话现状</h2>
+    <div class="risk">
+      你是家庭目前<b>主要的经济支柱</b>，肩上是一套还剩 <b>400 万</b> 房贷的房子，三个月后还有一个新生命。
+      而此刻，你名下<b>还没有一份商业保险</b>。<br><br>
+      这不是要吓你——而是说明，为什么"给家庭上一层保障"这件事，<b>在此刻</b>特别值得认真做一次。
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">03</span>六维保障体检</h2>
+    <p class="hint">从医疗、重疾、寿险、意外、养老、应急储备六个方面，看你们家"现在有多少 / 应该有多少 / 还差多少"——每一项的缺口怎么算，也一并列给你看。</p>
+
+    <!-- 寿险 -->
+    <div class="dim">
+      <div class="top"><span class="dn">寿险　·　家庭的"顶梁柱保障"</span><span class="badge b-big">缺口最大 · 优先</span></div>
+      <div class="bars">
+        <div class="barline"><span class="barlabel">现在</span><div class="track"><div class="fill cur" style="width:1%"></div></div><span class="barval">0 元</span></div>
+        <div class="barline"><span class="barlabel">应有</span><div class="track"><div class="fill tgt" style="width:100%"></div></div><span class="barval">约 500 万</span></div>
+      </div>
+      <div class="gap">缺口：<span class="num">约 500 万元</span></div>
+      <div class="calclabel">这 500 万是怎么来的 · 家庭责任法</div>
+      <div class="ctable">
+        <div class="crow"><span class="ci">房贷需还清<small>不让妻儿背债，房子保住</small></span><span class="cn plus">+ 400 万</span></div>
+        <div class="crow"><span class="ci">孩子养育与教育<small>从出生到大学，国内为主估算</small></span><span class="cn plus">+ 80 万</span></div>
+        <div class="crow"><span class="ci">家庭生活过渡金<small>家庭年开支约 12 万 × 约 10 年，给太太重新安顿的时间</small></span><span class="cn plus">+ 120 万</span></div>
+        <div class="crow"><span class="ci">已有存款可抵扣<small>家里已有的现金先用上</small></span><span class="cn minus">− 20 万</span></div>
+        <div class="crow total"><span class="ci">家庭责任合计</span><span class="cn">= 580 万</span></div>
+        <div class="crow reco"><span class="ci">建议寿险保障（保守取整）</span><span class="cn">≈ 500 万</span></div>
+      </div>
+      <div class="calcnote">注：此处暂未计入太太收入的长期分担，属偏稳妥估算；待补充后可适度微调。</div>
+      <div class="why"><span class="k">一句话：</span>这 400 万房贷不会因为你不在而消失。500 万寿险，意味着房子能保住、孩子的成长有依靠、太太不必独自扛起一切——这正是你说"最怕的事"对应的最直接答案。</div>
+      <div class="sugg"><b>建议形式：</b>定期寿险（保到 60 岁左右）。用很低的保费撑起很高的保额，最契合你现在的预算。</div>
+    </div>
+
+    <!-- 重疾 -->
+    <div class="dim">
+      <div class="top"><span class="dn">重疾　·　大病时的"收入替身"</span><span class="badge b-big">缺口较大 · 优先</span></div>
+      <div class="bars">
+        <div class="barline"><span class="barlabel">现在</span><div class="track"><div class="fill cur" style="width:1%"></div></div><span class="barval">0 元</span></div>
+        <div class="barline"><span class="barlabel">应有</span><div class="track"><div class="fill tgt" style="width:75%"></div></div><span class="barval">约 150 万</span></div>
+      </div>
+      <div class="gap">缺口：<span class="num">约 150 万元</span></div>
+      <div class="calclabel">这 150 万是怎么来的 · "治病的钱 + 中断的收入"</div>
+      <div class="ctable">
+        <div class="crow"><span class="ci">治疗与康复费用<small>住院、手术、康复、营养等</small></span><span class="cn plus">+ 50 万</span></div>
+        <div class="crow"><span class="ci">收入损失补偿<small>年收入 30 万 × 约 3 年（大病后的恢复期）</small></span><span class="cn plus">+ 90 万</span></div>
+        <div class="crow total"><span class="ci">合计</span><span class="cn">= 140 万</span></div>
+        <div class="crow reco"><span class="ci">建议重疾保障（取整）</span><span class="cn">≈ 150 万</span></div>
+      </div>
+      <div class="why"><span class="k">一句话：</span>大病可怕的不只是治疗费，更是它会让你三到五年没法全力工作，而家里还要一边还房贷、一边养孩子。</div>
+      <div class="sugg"><b>温馨提示：</b>趁现在身体状况良好，尽早投保会更从容、更顺利。这件事，早一点总比晚一点好。</div>
+    </div>
+
+    <!-- 医疗 -->
+    <div class="dim">
+      <div class="top"><span class="dn">医疗　·　大额住院的"挡箭牌"</span><span class="badge b-add">有空白 · 建议补</span></div>
+      <div class="calclabel" style="margin-top:14px">怎么看这块 · 不看保额，看"责任有没有覆盖"</div>
+      <div class="logic"><b>现状：仅社保。</b>社保管基础，但大额住院、自费药、进口器械是空白——这块缺口可能很大。一份"百万医疗"保费不高，却能在关键时刻顶住几十万甚至上百万的医疗账单。它是性价比最高的一块，几乎人人都该有。</div>
+      <div class="sugg"><b>建议形式：</b>百万医疗险。保费低、杠杆高，建议优先配置。</div>
+    </div>
+
+    <!-- 意外 -->
+    <div class="dim">
+      <div class="top"><span class="dn">意外　·　日常的"低成本兜底"</span><span class="badge b-add">建议补</span></div>
+      <div class="gap" style="margin-top:14px">缺口：<span class="num">约 100–200 万元</span>（意外身故/伤残）</div>
+      <div class="calclabel">这个数怎么定的</div>
+      <div class="logic"><b>对标寿险责任的一层低成本补充</b>——按你的家庭责任，意外身故/伤残保额取 100–200 万即可；意外险保费极低，用很小的成本就能叠加一份保障。</div>
+      <div class="why"><span class="k">一句话：</span>意外不挑时间。意外险保费很低，却能给日常通勤、出行多一层兜底。</div>
+    </div>
+
+    <!-- 养老 -->
+    <div class="dim">
+      <div class="top"><span class="dn">养老　·　给未来的自己</span><span class="badge b-late">暂可缓</span></div>
+      <div class="calclabel" style="margin-top:14px">缺口怎么算 · 替代率法</div>
+      <div class="logic">按"退休后想维持的生活水平"折算出每月需要的现金流，减去社保养老金，差额就是养老缺口。你的缺口客观存在，但当前阶段建议从缓。</div>
+      <div class="why"><span class="k">我们的建议：先放一放。</span>养老对 31 岁的你确实还早，预算更该花在"保障家庭"上。等太太产假结束、家庭现金流宽松些，我们再来认真规划。<b>把钱花在刀刃上，才是对你负责。</b></div>
+    </div>
+
+    <!-- 应急 -->
+    <div class="dim">
+      <div class="top"><span class="dn">应急储备　·　家里的"现金缓冲垫"</span><span class="badge b-ok">✓ 基本达标</span></div>
+      <div class="bars">
+        <div class="barline"><span class="barlabel">现在</span><div class="track"><div class="fill cur" style="width:100%;background:#9CCBB4"></div></div><span class="barval">20 万存款</span></div>
+        <div class="barline"><span class="barlabel">建议线</span><div class="track"><div class="fill tgt" style="width:65%"></div></div><span class="barval">9–17 万</span></div>
+      </div>
+      <div class="calclabel" style="margin-top:14px">建议线怎么算</div>
+      <div class="logic">家庭 3–6 个月的开支 ≈ 9–17 万。你 20 万存款已经覆盖这条线，所以这一项达标。</div>
+      <div class="why"><span class="k">这是你已经做得不错的一块。</span>一个提醒：之后配置保障时，请保留至少 <b>6 万左右（约 3 个月房贷）</b>的应急金，别全部投入。</div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">04</span>先补哪个？一张行动路线图</h2>
+    <p class="hint">缺口不用一次补齐。按"最要紧、最划算"的顺序，分步来。</p>
+    <div class="road">
+      <div class="step"><div class="idx">1</div><div class="body"><span class="when">现在就做</span><br><b>重疾　+　百万医疗</b>　——　趁身体状况良好，尽早把"健康保障"锁定。这两项一个守大病、一个守大额住院，越早办越顺。</div></div>
+      <div class="step"><div class="idx">2</div><div class="body"><span class="when">尽快</span><br><b>定期寿险（约 500 万）</b>　——　把那套房子、把这个家的未来稳稳"兜住"。这是对你最在意那件事最直接的回答。</div></div>
+      <div class="step"><div class="idx">3</div><div class="body"><span class="when">顺带</span><br><b>综合意外险</b>　——　花很小的钱，给日常多加一层保障。</div></div>
+      <div class="step later"><div class="idx">·</div><div class="body"><span class="when" style="color:var(--soft)">往后，预算宽松时</span><br><b>养老 · 孩子教育金</b>　——　等家庭现金流改善后，再来规划。</div></div>
+    </div>
+    <div class="budget">💡 <b>预算提示：</b>建议首期年投入控制在约 <b>1.5–2.5 万元</b>（你年结余可覆盖的范围内），不动用全部存款。我们一起把每一分钱花在最要紧的地方。</div>
+  </section>
+
+  <section>
+    <h2><span class="n">05</span>未来展望</h2>
+    <p class="hint">保障不是一张一次性的账单，而是陪你走过不同人生阶段的一条线。看看往后会怎样。</p>
+    <div class="dim">
+      <svg viewBox="0 0 640 205" width="100%" role="img" aria-label="保障随人生阶段变化曲线">
+        <line x1="52" y1="12" x2="76" y2="12" stroke="#C39A45" stroke-width="3" stroke-linecap="round"/>
+        <text x="82" y="16" style="font-size:12px" fill="#3A3E47">你需要的保障（家庭责任）</text>
+        <line x1="270" y1="12" x2="294" y2="12" stroke="#3D5891" stroke-width="3" stroke-linecap="round"/>
+        <text x="300" y="16" style="font-size:12px" fill="#3A3E47">配置后 · 你已有的保障</text>
+        <line x1="50" y1="175" x2="612" y2="175" stroke="#ECE6D8" stroke-width="1"/>
+        <polyline points="90,52 265,74 440,120 595,139" fill="none" stroke="#C39A45" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="90,152 265,78 440,120 595,139" fill="none" stroke="#3D5891" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="90" y1="54" x2="90" y2="150" stroke="#C45A3C" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <text x="99" y="104" style="font-size:10.5px" fill="#C45A3C">现在的缺口</text>
+        <circle cx="90" cy="52" r="4" fill="#C39A45"/><circle cx="265" cy="74" r="4" fill="#C39A45"/><circle cx="440" cy="120" r="4" fill="#C39A45"/><circle cx="595" cy="139" r="4" fill="#C39A45"/>
+        <circle cx="90" cy="152" r="4" fill="#3D5891"/><circle cx="265" cy="78" r="4" fill="#3D5891"/><circle cx="440" cy="120" r="4" fill="#3D5891"/><circle cx="595" cy="139" r="4" fill="#3D5891"/>
+        <text x="440" y="108" text-anchor="middle" style="font-size:10px" fill="#838893">房贷还清 · 孩子长大</text>
+        <text x="90" y="193" text-anchor="middle" style="font-size:11.5px" fill="#838893">现在</text>
+        <text x="265" y="193" text-anchor="middle" style="font-size:11.5px" fill="#838893">10 年后</text>
+        <text x="440" y="193" text-anchor="middle" style="font-size:11.5px" fill="#838893">60 岁</text>
+        <text x="595" y="193" text-anchor="middle" style="font-size:11.5px" fill="#838893">80 岁</text>
+      </svg>
+      <div class="why" style="margin-top:8px"><span class="k">这条线想告诉你的是：</span>现在是你肩上担子最重的时候——房贷刚起步、孩子刚出生，需要的保障最高，而你手上的保障几乎是空的（这就是那道"现在的缺口"）。但只要现在把它补上，往后会一年比一年轻松：房贷一年年还、孩子一年年大，你要扛的责任在慢慢变小，而你为家筑起的这道防线一直都在。</div>
+      <div class="why">等到 60 岁，房贷早已还清、孩子也已长大成人，你可以从容地把重心从"守护家人"转向"享受生活"。<b>现在这一步，是为了让未来的每一年都更安心。</b></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="close">
+      <p class="big">张伟，再过几个月，你就要第一次听到孩子叫"爸爸"。</p>
+      <p>保障不是为了"怕"，而是为了让你能更安心地去爱、去拼——知道无论发生什么，这个家都有一层稳稳的托底。</p>
+      <p class="gold">这，也许是你能送给孩子的第一份礼物。</p>
+      <p style="margin-top:16px">下一步，我可以帮你把"<b>第一步</b>"做成具体的方案，你和太太一起看看，再慢慢决定。</p>
+    </div>
+  </section>
+
+  <p class="disc">
+    说明：本报告为家庭保障需求分析，所列金额为基于您当前所提供信息的估算与建议，<b>非保险合同承诺</b>；具体保障责任、保额与保费，以正式保险条款及计划书为准。本报告部分测算基于一定假设（如家庭收入与开支结构、收入替代年限等），如与实际情况有出入，可随时与您的顾问沟通调整。投保需以健康告知与核保结果为准。
+  </p>
+
+</div>
+</body>
+</html>
