@@ -1,4 +1,3 @@
-import { throwGatewayApiError } from "@/core/api/errors";
 import { fetch } from "@/core/api/fetcher";
 import { getBackendBaseURL } from "@/core/config";
 
@@ -16,10 +15,20 @@ function channelsUrl(path: string): string {
   return `${getBackendBaseURL()}/api/channels${path}`;
 }
 
+async function throwChannelApiError(
+  response: Response,
+  fallback: string,
+): Promise<never> {
+  const body = (await response.json().catch(() => ({}))) as {
+    detail?: unknown;
+  };
+  throw new Error(typeof body.detail === "string" ? body.detail : fallback);
+}
+
 export async function listChannelProviders(): Promise<ChannelProvidersResponse> {
   const response = await fetch(channelsUrl("/providers"));
   if (!response.ok) {
-    await throwGatewayApiError(
+    await throwChannelApiError(
       response,
       `Failed to load channel providers: ${response.statusText}`,
     );
@@ -30,7 +39,7 @@ export async function listChannelProviders(): Promise<ChannelProvidersResponse> 
 export async function listChannelConnections(): Promise<ChannelConnection[]> {
   const response = await fetch(channelsUrl("/connections"));
   if (!response.ok) {
-    await throwGatewayApiError(
+    await throwChannelApiError(
       response,
       `Failed to load channel connections: ${response.statusText}`,
     );
@@ -47,7 +56,7 @@ export async function connectChannelProvider(
     { method: "POST" },
   );
   if (!response.ok) {
-    await throwGatewayApiError(
+    await throwChannelApiError(
       response,
       `Failed to connect ${provider}: ${response.statusText}`,
     );
@@ -68,7 +77,7 @@ export async function configureChannelProvider(
     },
   );
   if (!response.ok) {
-    await throwGatewayApiError(
+    await throwChannelApiError(
       response,
       `Failed to configure ${provider}: ${response.statusText}`,
     );
@@ -84,7 +93,7 @@ export async function disconnectChannelConnection(
     { method: "DELETE" },
   );
   if (!response.ok) {
-    await throwGatewayApiError(
+    await throwChannelApiError(
       response,
       `Failed to disconnect channel: ${response.statusText}`,
     );
@@ -99,7 +108,7 @@ export async function disconnectChannelProvider(
     { method: "DELETE" },
   );
   if (!response.ok) {
-    await throwGatewayApiError(
+    await throwChannelApiError(
       response,
       `Failed to disconnect ${provider}: ${response.statusText}`,
     );

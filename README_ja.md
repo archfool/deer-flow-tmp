@@ -42,7 +42,6 @@ DeerFlowは、BytePlusが独自に開発したインテリジェント検索・�
 
 - [🦌 DeerFlow - 2.0](#-deerflow---20)
   - [公式ウェブサイト](#公式ウェブサイト)
-  - [ByteDance Volcengine のコーディングプラン](#bytedance-volcengine-のコーディングプラン)
   - [InfoQuest](#infoquest)
   - [目次](#目次)
   - [Coding Agent に一文でセットアップを依頼](#coding-agent-に一文でセットアップを依頼)
@@ -95,102 +94,67 @@ DeerFlow がまだ clone されていなければ先に clone してから、htt
    cd deer-flow
    ```
 
-2. **セットアップウィザードの実行（推奨）**
+2. **ローカル設定ファイルの生成**
 
    プロジェクトルートディレクトリ（`deer-flow/`）から以下を実行します：
 
    ```bash
-   make setup
+   make config
    ```
 
-   対話式ウィザードが起動し、LLMプロバイダーの選択、オプションのWeb検索、そしてサンドボックスモード・bash権限・ファイル書き込みツールなどの実行/安全設定を順に案内します。最小構成の`config.yaml`を生成し、APIキーを`.env`に書き込みます。所要時間は約2分です。
+   このコマンドは、提供されたテンプレートに基づいてローカル設定ファイルを作成します。
 
-   いつでも`make doctor`を実行して、設定を確認し、具体的な修正ヒントを得られます。
-   ローカルセットアップや実行時の問題についてGitHub issueを起票する場合は、`make support-bundle`を実行してください。このコマンドは報告者向けの次のステップを表示し、issueに貼り付けるための`*-issue-summary.md`ファイルと、AI支援でissueを起票するための`*-issue-draft.md`ファイルを書き出し、オプションで証跡zipを`.deer-flow/support-bundles/`以下に作成します。AIアシスタントがissueを起票する場合は、ドラフトを起点にして、不足している事実を創作するのではなく、すべてのREQUIREDプレースホルダーを置き換えてください。zipは、メンテナーから求められた場合、またはサマリーだけでは不十分な場合にのみ添付してください。メンテナーやAIトリアージツールは`triage.json`から確認を始められます。バンドルに含まれるのはリダクト済みの診断情報とファイルマニフェストのみで、`.env`、生の会話メッセージ、ユーザーファイルの内容は含まれません。
+3. **使用するモデルの設定**
 
-   > **上級者向け / 手動設定**：`config.yaml`を直接編集したい場合は、代わりに`make config`を実行して完全なテンプレートをコピーしてください。CLI連携プロバイダー（Codex CLI、Claude Code OAuth）、OpenRouter、Responses APIなどを含む完全なリファレンスは`config.example.yaml`を参照してください。
-
-   <details>
-   <summary>手動モデル設定の例</summary>
+   `config.yaml`を編集し、少なくとも1つのモデルを定義します：
 
    ```yaml
    models:
-     - name: gpt-4o
-       display_name: GPT-4o
-       use: langchain_openai:ChatOpenAI
-       model: gpt-4o
-       api_key: $OPENAI_API_KEY
+     - name: gpt-4                       # 内部識別子
+       display_name: GPT-4               # 表示名
+       use: langchain_openai:ChatOpenAI  # LangChainクラスパス
+       model: gpt-4                      # API用モデル識別子
+       api_key: $OPENAI_API_KEY          # APIキー（推奨：環境変数を使用）
+       max_tokens: 4096                  # リクエストあたりの最大トークン数
+       temperature: 0.7                  # サンプリング温度
 
      - name: openrouter-gemini-2.5-flash
        display_name: Gemini 2.5 Flash (OpenRouter)
        use: langchain_openai:ChatOpenAI
        model: google/gemini-2.5-flash-preview
-       api_key: $OPENROUTER_API_KEY
+       api_key: $OPENAI_API_KEY          # OpenRouterもここではOpenAI互換のフィールド名を使用
        base_url: https://openrouter.ai/api/v1
-
-     - name: gpt-5-responses
-       display_name: GPT-5 (Responses API)
-       use: langchain_openai:ChatOpenAI
-       model: gpt-5
-       api_key: $OPENAI_API_KEY
-       use_responses_api: true
-       output_version: responses/v1
-
-     - name: qwen3-32b-vllm
-       display_name: Qwen3 32B (vLLM)
-       use: deerflow.models.vllm_provider:VllmChatModel
-       model: Qwen/Qwen3-32B
-       api_key: $VLLM_API_KEY
-       base_url: http://localhost:8000/v1
-       supports_thinking: true
-       when_thinking_enabled:
-         extra_body:
-           chat_template_kwargs:
-             enable_thinking: true
    ```
 
    OpenRouterやOpenAI互換のゲートウェイは、`langchain_openai:ChatOpenAI`と`base_url`で設定します。プロバイダー固有の環境変数名を使用したい場合は、`api_key`でその変数を明示的に指定してください（例：`api_key: $OPENROUTER_API_KEY`）。
 
-   OpenAIモデルを`/v1/responses`経由でルーティングするには、引き続き`langchain_openai:ChatOpenAI`を使用し、`use_responses_api: true`と`output_version: responses/v1`を設定してください。
+4. **設定したモデルのAPIキーを設定**
 
-   vLLM 0.19.0では`deerflow.models.vllm_provider:VllmChatModel`を使用してください。Qwen系のreasoningモデルでは、DeerFlowは`extra_body.chat_template_kwargs.enable_thinking`でreasoningを切り替え、マルチターンのツールコール会話にわたってvLLM独自の非標準`reasoning`フィールドを保持します。従来の`thinking`設定は後方互換性のため自動的に正規化されます。reasoningモデルはサーバー側で`--reasoning-parser ...`を付けて起動する必要がある場合もあります。ローカルのvLLMデプロイメントが空でない任意のAPIキーを受け付ける場合でも、`VLLM_API_KEY`にはプレースホルダー値を設定しておけます。
+   以下のいずれかの方法を選択してください：
 
-   CLI連携プロバイダーの例：
+- オプションA：プロジェクトルートの`.env`ファイルを編集（推奨）
+
+   ```bash
+   TAVILY_API_KEY=your-tavily-api-key
+   OPENAI_API_KEY=your-openai-api-key
+   # OpenRouterもlangchain_openai:ChatOpenAI + base_url使用時はOPENAI_API_KEYを使用します。
+   # 必要に応じて他のプロバイダーキーを追加
+   INFOQUEST_API_KEY=your-infoquest-api-key
+   ```
+
+- オプションB：シェルで環境変数をエクスポート
+
+   ```bash
+   export OPENAI_API_KEY=your-openai-api-key
+   ```
+
+- オプションC：`config.yaml`を直接編集（本番環境には非推奨）
 
    ```yaml
    models:
-     - name: gpt-5.4
-       display_name: GPT-5.4 (Codex CLI)
-       use: deerflow.models.openai_codex_provider:CodexChatModel
-       model: gpt-5.4
-       supports_thinking: true
-       supports_reasoning_effort: true
-
-     - name: claude-sonnet-4.6
-       display_name: Claude Sonnet 4.6 (Claude Code OAuth)
-       use: deerflow.models.claude_provider:ClaudeChatModel
-       model: claude-sonnet-4-6
-       max_tokens: 4096
-       supports_thinking: true
+     - name: gpt-4
+       api_key: your-actual-api-key-here  # プレースホルダーを置換
    ```
-
-   - Codex CLIは`~/.codex/auth.json`を読み取ります
-   - Claude Codeは`CLAUDE_CODE_OAUTH_TOKEN`、`ANTHROPIC_AUTH_TOKEN`、`CLAUDE_CODE_CREDENTIALS_PATH`、または`~/.claude/.credentials.json`を受け付けます
-   - ACPエージェントのエントリはモデルプロバイダーとは別物です。`acp_agents.codex`を設定する場合は、`npx -y @zed-industries/codex-acp`のようなCodex ACPアダプターを指定してください
-   - macOSでは、必要に応じてClaude Codeの認証情報を明示的にエクスポートしてください：
-
-   ```bash
-   eval "$(python3 scripts/export_claude_code_oauth.py --print-export)"
-   ```
-
-   APIキーは`.env`で手動設定する（推奨）ことも、シェルでエクスポートすることもできます：
-
-   ```bash
-   OPENAI_API_KEY=your-openai-api-key
-   TAVILY_API_KEY=your-tavily-api-key
-   ```
-
-   </details>
 
 ### アプリケーションの実行
 
@@ -223,8 +187,7 @@ make down   # コンテナを停止して削除
 
 サービスをローカルで実行する場合：
 
-前提条件：上記の「設定」手順を先に完了してください（`make setup`）。`make dev`にはプロジェクトルートに有効な`config.yaml`が必要です。`DEER_FLOW_PROJECT_ROOT`でプロジェクトルートを明示的に指定するか、`DEER_FLOW_CONFIG_PATH`で特定の設定ファイルを指定できます。実行時の状態はデフォルトでプロジェクトルート直下の`.deer-flow`に書き込まれ、`DEER_FLOW_HOME`で移動できます。skillsはデフォルトでプロジェクトルート直下の`skills/`から読み込まれ、`DEER_FLOW_SKILLS_PATH`で移動できます。起動前に`make doctor`を実行して設定を確認してください。
-Windowsでは、ローカル開発フローはGit Bashから実行してください。bashベースのサービススクリプトはネイティブの`cmd.exe`やPowerShellではサポートされておらず、一部のスクリプトがGit for Windowsの`cygpath`などのユーティリティに依存しているため、WSLでの動作も保証されません。
+前提条件：上記の「設定」手順を先に完了してください（`make config`とモデルAPIキー）。`make dev`には有効な設定ファイルが必要です（デフォルトはプロジェクトルートの`config.yaml`。`DEER_FLOW_CONFIG_PATH`で上書き可能）。
 
 1. **前提条件の確認**：
    ```bash

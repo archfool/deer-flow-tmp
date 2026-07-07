@@ -208,21 +208,6 @@ def test_build_run_config_with_overrides():
     assert config["metadata"]["user"] == "alice"
 
 
-def test_build_run_config_context_path_still_sets_configurable_thread_id(_stub_app_config):
-    """A caller-supplied context (e.g. request-scoped secrets, #3861) must not
-    deprive the checkpointer of configurable.thread_id, which it always needs to
-    scope checkpoints. Secrets stay in context; thread_id is mirrored into
-    configurable for the checkpointer."""
-    from app.gateway.services import build_run_config
-
-    config = build_run_config("thread-1", {"context": {"secrets": {"ERP_TOKEN": "v"}}}, None)
-    assert config["context"]["secrets"] == {"ERP_TOKEN": "v"}
-    assert config["context"]["thread_id"] == "thread-1"
-    assert config["configurable"]["thread_id"] == "thread-1"
-    # Secrets must NOT be mirrored into configurable.
-    assert "secrets" not in config["configurable"]
-
-
 # ---------------------------------------------------------------------------
 # recursion_limit clamping: the Gateway must not trust a client-supplied
 # recursion_limit verbatim (runaway LLM cost / DoS). See build_run_config.
@@ -416,29 +401,6 @@ def test_build_run_config_dual_write_matches_merge_run_context_overrides_shape()
     assert via_assistant_id["context"]["agent_name"] == via_context["context"]["agent_name"]
 
 
-def test_non_interactive_context_override_is_internal_only():
-    """Client-supplied ``non_interactive`` must be dropped: it strips the
-    ``ask_clarification`` tool, so only the internal scheduler path may set it."""
-    from app.gateway.services import build_run_config, merge_run_context_overrides
-
-    config = build_run_config("thread-1", None, None)
-    merge_run_context_overrides(config, {"non_interactive": True})
-
-    assert "non_interactive" not in config["configurable"]
-    assert "non_interactive" not in config["context"]
-
-
-def test_non_interactive_context_override_honored_for_internal_caller():
-    from app.gateway.services import build_run_config, merge_run_context_overrides
-
-    config = build_run_config("thread-1", None, None)
-    merge_run_context_overrides(config, {"non_interactive": True, "model_name": "gpt"}, internal=True)
-
-    assert config["configurable"]["non_interactive"] is True
-    assert config["context"]["non_interactive"] is True
-    assert config["configurable"]["model_name"] == "gpt"
-
-
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
@@ -617,52 +579,6 @@ def test_merge_run_context_overrides_noop_for_empty_context():
     merge_run_context_overrides(config, None)
     merge_run_context_overrides(config, {})
     assert config == before
-
-
-def test_merge_run_context_overrides_forwards_context_only_keys():
-    """``github_token`` and ``disable_clarification`` must reach ``config['context']``
-    (runtime context → ``runtime.context``) so the bash tool and ClarificationMiddleware
-    can read them. They must NOT be written to ``config['configurable']`` — that dict is
-    persisted in checkpoints, and ``github_token`` is a (short-lived) secret.
-
-    Regression for the GitHub channel: without this, the installation token minted by
-    ``ChannelManager._apply_channel_policy`` was silently dropped here, so ``gh``
-    fell back to the host's stored keyring creds and authored issues/PRs as the host
-    user instead of the App bot.
-    """
-    from app.gateway.services import build_run_config, merge_run_context_overrides
-
-    config = build_run_config("thread-1", None, None)
-    merge_run_context_overrides(
-        config,
-        {
-            "github_token": "ghs_installation_token",
-            "disable_clarification": True,
-            "agent_name": "coding-llm-gateway",
-        },
-    )
-
-    # Forwarded into runtime context — what tools/middlewares read.
-    assert config["context"]["github_token"] == "ghs_installation_token"
-    assert config["context"]["disable_clarification"] is True
-    assert config["context"]["agent_name"] == "coding-llm-gateway"
-
-    # NOT written into configurable (checkpoint-persisted).
-    assert "github_token" not in config.get("configurable", {})
-    assert "disable_clarification" not in config.get("configurable", {})
-
-
-def test_merge_run_context_overrides_context_only_keys_do_not_override_existing():
-    """A token already in ``config['context']`` must not be clobbered by a
-    client-supplied one (defense in depth — the manager is the only legitimate
-    source, but ``setdefault`` keeps the contract explicit)."""
-    from app.gateway.services import build_run_config, merge_run_context_overrides
-
-    config = build_run_config("thread-1", None, None)
-    config["context"] = {"github_token": "pre-existing"}
-    merge_run_context_overrides(config, {"github_token": "attacker-supplied"})
-
-    assert config["context"]["github_token"] == "pre-existing"
 
 
 def test_context_does_not_override_existing_configurable():
@@ -920,41 +836,6 @@ def test_start_run_uses_internal_owner_header_for_persistence(_stub_app_config):
     assert task_context["user_id"] == "owner-1"
 
 
-def test_launch_scheduled_thread_run_marks_context_non_interactive(_stub_app_config):
-    import asyncio
-    from types import SimpleNamespace
-    from unittest.mock import patch
-
-    from app.gateway.services import launch_scheduled_thread_run
-
-    async def _scenario():
-        captured: dict[str, object] = {}
-
-        async def fake_start_run(body, thread_id, request):
-            captured["thread_id"] = thread_id
-            captured["context"] = body.context
-            captured["metadata"] = body.metadata
-            return SimpleNamespace(run_id="run-1", thread_id=thread_id)
-
-        with patch("app.gateway.services.start_run", side_effect=fake_start_run):
-            result = await launch_scheduled_thread_run(
-                thread_id="thread-scheduled",
-                assistant_id="lead_agent",
-                prompt="Run in background",
-                app=SimpleNamespace(state=SimpleNamespace()),
-                owner_user_id="user-1",
-                metadata={"scheduled_task_id": "task-1"},
-            )
-        return captured, result
-
-    captured, result = asyncio.run(_scenario())
-
-    assert captured["thread_id"] == "thread-scheduled"
-    assert captured["context"] == {"non_interactive": True, "user_id": "user-1"}
-    assert captured["metadata"] == {"scheduled_task_id": "task-1"}
-    assert result == {"run_id": "run-1", "thread_id": "thread-scheduled"}
-
-
 # ---------------------------------------------------------------------------
 # build_run_config — context / configurable precedence (LangGraph >= 0.6.0)
 # ---------------------------------------------------------------------------
@@ -972,8 +853,7 @@ def test_build_run_config_with_context():
     assert "context" in config
     assert config["context"]["user_id"] == "u-42"
     assert config["context"]["thread_id"] == "thread-1"
-    # configurable carries thread_id for the checkpointer; user context stays in context.
-    assert config["configurable"] == {"thread_id": "thread-1"}
+    assert "configurable" not in config
     assert config["recursion_limit"] == 100
 
 
@@ -989,7 +869,7 @@ def test_build_run_config_context_injects_thread_id():
     assert config["context"]["user_id"] == "u-1"
     assert config["context"]["thinking_enabled"] is True
     assert config["context"]["thread_id"] == "T-deadbeef-42"
-    assert config["configurable"] == {"thread_id": "T-deadbeef-42"}
+    assert "configurable" not in config
 
 
 def test_build_run_config_null_context_becomes_empty_context():
@@ -999,7 +879,7 @@ def test_build_run_config_null_context_becomes_empty_context():
     config = build_run_config("thread-1", {"context": None}, None)
 
     assert config["context"] == {"thread_id": "thread-1"}
-    assert config["configurable"] == {"thread_id": "thread-1"}
+    assert "configurable" not in config
 
 
 def test_build_run_config_rejects_non_mapping_context():
@@ -1041,10 +921,7 @@ def test_build_run_config_context_plus_configurable_warns(caplog):
         )
     assert "context" in config
     assert config["context"]["user_id"] == "u-42"
-    # context wins: caller's configurable (model_name) is dropped, but thread_id is
-    # still set for the checkpointer.
-    assert config["configurable"] == {"thread_id": "thread-1"}
-    assert "model_name" not in config["configurable"]
+    assert "configurable" not in config
     assert any("both 'context' and 'configurable'" in r.message for r in caplog.records)
 
 
@@ -1058,7 +935,7 @@ def test_build_run_config_context_passthrough_other_keys():
         None,
     )
     assert config["context"]["thread_id"] == "thread-1"
-    assert config["configurable"] == {"thread_id": "thread-1"}
+    assert "configurable" not in config
     assert config["tags"] == ["prod"]
 
 
@@ -1069,19 +946,3 @@ def test_build_run_config_no_request_config():
     config = build_run_config("thread-abc", None, None)
     assert config["configurable"] == {"thread_id": "thread-abc"}
     assert "context" not in config
-
-
-def test_strip_internal_context_keys_scrubs_config_smuggled_non_interactive():
-    """A non-internal client must not force ``non_interactive`` via the free-form
-    ``body.config`` either — ``build_run_config`` copies ``config.context`` and
-    ``config.configurable`` verbatim, so the assembled config gets scrubbed."""
-    from app.gateway.services import build_run_config, strip_internal_context_keys
-
-    via_context = build_run_config("thread-1", {"context": {"non_interactive": True, "model_name": "gpt"}}, None)
-    strip_internal_context_keys(via_context)
-    assert "non_interactive" not in via_context["context"]
-    assert via_context["context"]["model_name"] == "gpt"
-
-    via_configurable = build_run_config("thread-1", {"configurable": {"non_interactive": True}}, None)
-    strip_internal_context_keys(via_configurable)
-    assert "non_interactive" not in via_configurable["configurable"]

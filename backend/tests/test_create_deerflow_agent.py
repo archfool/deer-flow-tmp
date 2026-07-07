@@ -308,12 +308,9 @@ def test_always_on_error_handling(mock_create_agent):
     create_deerflow_agent(_make_mock_model(), features=feat)
 
     call_kwargs = mock_create_agent.call_args[1]
-    middleware = call_kwargs["middleware"]
-    mw_types = [type(m).__name__ for m in middleware]
+    mw_types = [type(m).__name__ for m in call_kwargs["middleware"]]
     assert "DanglingToolCallMiddleware" in mw_types
     assert "ToolErrorHandlingMiddleware" in mw_types
-    tool_error_middleware = next(m for m in middleware if type(m).__name__ == "ToolErrorHandlingMiddleware")
-    assert tool_error_middleware._app_config is None
 
 
 # ---------------------------------------------------------------------------

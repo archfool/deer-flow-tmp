@@ -44,7 +44,6 @@ DeerFlow интегрирован с инструментарием для ум�
 
 - [🦌 DeerFlow - 2.0](#-deerflow---20)
   - [Официальный сайт](#официальный-сайт)
-  - [Coding Plan от ByteDance Volcengine](#coding-plan-от-bytedance-volcengine)
   - [InfoQuest](#infoquest)
   - [Содержание](#содержание)
   - [Установка одной фразой для coding agent](#установка-одной-фразой-для-coding-agent)
@@ -97,47 +96,35 @@ DeerFlow интегрирован с инструментарием для ум�
    cd deer-flow
    ```
 
-2. **Запустить мастер настройки (рекомендуется)**
+2. **Сгенерировать локальные конфиги**
 
    Из корня проекта (`deer-flow/`) запустите:
 
    ```bash
-   make setup
+   make config
    ```
 
-   Запустится интерактивный мастер, который поможет выбрать LLM-провайдера, опциональный веб-поиск и настройки выполнения/безопасности (режим sandbox, доступ к bash, инструменты записи файлов). Он сгенерирует минимальный `config.yaml` и запишет ключи в `.env`. Это занимает около 2 минут.
+   Команда создаёт локальные конфиги на основе шаблонов.
 
-   В любой момент запускайте `make doctor`, чтобы проверить конфигурацию и получить конкретные подсказки по исправлению.
-   Если вы открываете GitHub issue о проблеме с локальной установкой или работой системы, выполните
-   `make support-bundle`. Команда выводит дальнейшие шаги для автора отчёта, создаёт файл
-   `*-issue-summary.md`, который нужно вставить в issue, файл `*-issue-draft.md`
-   для оформления issue с помощью AI и, опционально, zip-архив с диагностикой в
-   `.deer-flow/support-bundles/`. Если issue оформляет AI-ассистент, он должен начать
-   с черновика и заменить каждый плейсхолдер REQUIRED, а не выдумывать недостающие
-   факты. Прикладывайте zip-архив только если его запросит мейнтейнер или если одной
-   сводки недостаточно. Мейнтейнеры и AI-инструменты триажа могут начинать с
-   `triage.json`; архив содержит только очищенную от чувствительных данных диагностику
-   и манифесты файлов и не включает `.env`, исходные сообщения диалогов или содержимое
-   пользовательских файлов.
+3. **Настроить модель**
 
-   > **Продвинутая / ручная настройка**: если вы предпочитаете редактировать `config.yaml` напрямую, выполните вместо этого `make config`, чтобы скопировать полный шаблон. Полный справочник — `config.example.yaml`, включая CLI-провайдеров (Codex CLI, Claude Code OAuth), OpenRouter, Responses API и многое другое.
-
-   <details>
-   <summary>Примеры ручной настройки моделей</summary>
+   Отредактируйте `config.yaml` и задайте хотя бы одну модель:
 
    ```yaml
    models:
-     - name: gpt-4o
-       display_name: GPT-4o
-       use: langchain_openai:ChatOpenAI
-       model: gpt-4o
-       api_key: $OPENAI_API_KEY
+     - name: gpt-4                       # Внутренний идентификатор
+       display_name: GPT-4               # Отображаемое имя
+       use: langchain_openai:ChatOpenAI  # Путь к классу LangChain
+       model: gpt-4                      # Идентификатор модели для API
+       api_key: $OPENAI_API_KEY          # API-ключ (рекомендуется: переменная окружения)
+       max_tokens: 4096                  # Максимальное количество токенов на запрос
+       temperature: 0.7                  # Температура сэмплирования
 
      - name: openrouter-gemini-2.5-flash
        display_name: Gemini 2.5 Flash (OpenRouter)
        use: langchain_openai:ChatOpenAI
        model: google/gemini-2.5-flash-preview
-       api_key: $OPENROUTER_API_KEY
+       api_key: $OPENAI_API_KEY
        base_url: https://openrouter.ai/api/v1
 
      - name: gpt-5-responses
@@ -147,27 +134,9 @@ DeerFlow интегрирован с инструментарием для ум�
        api_key: $OPENAI_API_KEY
        use_responses_api: true
        output_version: responses/v1
-
-     - name: qwen3-32b-vllm
-       display_name: Qwen3 32B (vLLM)
-       use: deerflow.models.vllm_provider:VllmChatModel
-       model: Qwen/Qwen3-32B
-       api_key: $VLLM_API_KEY
-       base_url: http://localhost:8000/v1
-       supports_thinking: true
-       when_thinking_enabled:
-         extra_body:
-           chat_template_kwargs:
-             enable_thinking: true
    ```
 
-   OpenRouter и аналогичные OpenAI-совместимые шлюзы настраиваются через `langchain_openai:ChatOpenAI` с параметром `base_url`. Если вы предпочитаете имя переменной окружения, специфичное для провайдера, укажите его в `api_key` явно (например, `api_key: $OPENROUTER_API_KEY`).
-
-   Чтобы направить модели OpenAI через `/v1/responses`, продолжайте использовать `langchain_openai:ChatOpenAI` и задайте `use_responses_api: true` вместе с `output_version: responses/v1`.
-
-   Для vLLM 0.19.0 используйте `deerflow.models.vllm_provider:VllmChatModel`. Для reasoning-моделей в стиле Qwen DeerFlow переключает режим рассуждений через `extra_body.chat_template_kwargs.enable_thinking` и сохраняет нестандартное поле `reasoning` vLLM в многоходовых диалогах с вызовами инструментов. Устаревшие конфигурации `thinking` автоматически нормализуются для обратной совместимости. Reasoning-моделям также может потребоваться запуск сервера с флагом `--reasoning-parser ...`. Если ваш локальный vLLM принимает любой непустой API-ключ, всё равно задайте `VLLM_API_KEY` со значением-заглушкой.
-
-   Примеры CLI-провайдеров:
+   OpenRouter и аналогичные OpenAI-совместимые шлюзы настраиваются через `langchain_openai:ChatOpenAI` с параметром `base_url`. Для CLI-провайдеров:
 
    ```yaml
    models:
@@ -187,22 +156,30 @@ DeerFlow интегрирован с инструментарием для ум�
    ```
 
    - Codex CLI читает `~/.codex/auth.json`
-   - Claude Code принимает `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_CREDENTIALS_PATH` или `~/.claude/.credentials.json`
-   - Записи ACP-агентов настраиваются отдельно от провайдеров моделей — если вы настраиваете `acp_agents.codex`, укажите в нём Codex ACP-адаптер, например `npx -y @zed-industries/codex-acp`
+   - Claude Code принимает `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_AUTH_TOKEN` или `~/.claude/.credentials.json`
    - На macOS при необходимости экспортируйте аутентификацию Claude Code явно:
 
    ```bash
    eval "$(python3 scripts/export_claude_code_oauth.py --print-export)"
    ```
 
-   API-ключи также можно задать вручную в `.env` (рекомендуется) или экспортировать в оболочке:
+4. **Указать API-ключи**
+
+   - **Вариант А**: файл `.env` в корне проекта (рекомендуется)
 
    ```bash
-   OPENAI_API_KEY=your-openai-api-key
    TAVILY_API_KEY=your-tavily-api-key
+   OPENAI_API_KEY=your-openai-api-key
+   INFOQUEST_API_KEY=your-infoquest-api-key
    ```
 
-   </details>
+   - **Вариант Б**: переменные окружения в терминале
+
+   ```bash
+   export OPENAI_API_KEY=your-openai-api-key
+   ```
+
+   - **Вариант В**: напрямую в `config.yaml` (не рекомендуется для продакшена)
 
 ### Запуск
 
@@ -228,9 +205,6 @@ make down   # Остановить и удалить контейнеры
 Адрес: http://localhost:2026
 
 #### Вариант 2: Локальная разработка
-
-Предварительное условие: сначала выполните шаги раздела «Конфигурация» выше (`make setup`). Для `make dev` нужен корректный `config.yaml` в корне проекта. Задайте `DEER_FLOW_PROJECT_ROOT`, чтобы явно указать корень проекта, или `DEER_FLOW_CONFIG_PATH`, чтобы указать конкретный файл конфигурации. Состояние времени выполнения по умолчанию записывается в `.deer-flow` в корне проекта и может быть перенесено через `DEER_FLOW_HOME`; skills по умолчанию читаются из `skills/` в корне проекта, путь можно переопределить через `DEER_FLOW_SKILLS_PATH`. Перед запуском выполните `make doctor`, чтобы проверить настройку.
-В Windows запускайте локальный процесс разработки из Git Bash. Нативные оболочки `cmd.exe` и PowerShell не поддерживаются для сервисных скриптов на bash, а работа в WSL не гарантируется, поскольку некоторые скрипты зависят от утилит Git for Windows, таких как `cygpath`.
 
 1. **Проверить зависимости**:
    ```bash

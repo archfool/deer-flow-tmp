@@ -45,10 +45,6 @@ class McpServerConfig(BaseModel):
     headers: dict[str, str] = Field(default_factory=dict, description="HTTP headers to send (for sse or http type)")
     oauth: McpOAuthConfig | None = Field(default=None, description="OAuth configuration (for sse or http type)")
     description: str = Field(default="", description="Human-readable description of what this MCP server provides")
-    tool_call_timeout: float | None = Field(
-        default=None,
-        description="Timeout in seconds for individual stdio MCP tool calls. HTTP/SSE servers use transport-level timeouts. None means no timeout.",
-    )
     model_config = ConfigDict(extra="allow")
 
     @model_validator(mode="before")
@@ -217,20 +213,15 @@ class ExtensionsConfig(BaseModel):
 
         Args:
             skill_name: Name of the skill
-            skill_category: Category of the skill (public, custom, or legacy)
+            skill_category: Category of the skill
 
         Returns:
-            True if enabled, False otherwise.
-
-        Note:
-            All skill categories (public, custom, legacy) respect the
-            extensions_config enabled/disabled state.  When no explicit
-            entry exists, skills default to enabled.
+            True if enabled, False otherwise
         """
         skill_config = self.skills.get(skill_name)
         if skill_config is None:
-            # Default to enabled for all skill categories
-            return skill_category in ("public", "custom", "legacy")
+            # Default to enable for public & custom skill
+            return skill_category in ("public", "custom")
         return skill_config.enabled
 
 

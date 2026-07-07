@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 from collections.abc import AsyncGenerator, Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import TYPE_CHECKING, TypeVar, cast
@@ -46,27 +45,6 @@ logger = logging.getLogger(__name__)
 _RUN_DRAIN_TIMEOUT_SECONDS = 5.0
 
 
-def _enforce_postgres_for_multi_worker(config: AppConfig) -> None:
-    """Refuse to start when GATEWAY_WORKERS > 1 and the DB backend is not Postgres.
-
-    SQLite write-locks cannot support concurrent multi-process access.
-    This gate runs once at startup before any persistence engine is
-    initialised so the error message is clear and the process exits
-    immediately.
-    """
-    try:
-        workers = int(os.environ.get("GATEWAY_WORKERS", "1"))
-    except (TypeError, ValueError):
-        workers = 1
-
-    if workers <= 1:
-        return
-
-    backend = getattr(config.database, "backend", None)
-    if backend != "postgres":
-        raise SystemExit(f"GATEWAY_WORKERS={workers} requires database.backend='postgres', but database.backend is '{backend}'. SQLite cannot support concurrent multi-process access. Set GATEWAY_WORKERS=1 or switch to Postgres.")
-
-
 async def _drain_inflight_runs(run_manager: RunManager) -> None:
     """Drain in-flight runs before the checkpointer is torn down (issue #3373).
 
@@ -91,44 +69,6 @@ async def _drain_inflight_runs(run_manager: RunManager) -> None:
         raise
     except Exception:
         logger.exception("Failed to drain in-flight runs during shutdown")
-
-
-async def _publish_recovered_run_stream_end(
-    bridge: StreamBridge,
-    recovered_runs: list[RunRecord],
-    *,
-    cleanup_delay: float = 60.0,
-) -> None:
-    """Terminate retained streams for runs recovered as orphaned at startup."""
-    for record in recovered_runs:
-        stream_exists = getattr(bridge, "stream_exists", None)
-        if stream_exists is not None:
-            try:
-                if not await stream_exists(record.run_id):
-                    logger.debug("Skipping recovered stream end for %s: stream already expired", record.run_id)
-                    continue
-            except Exception:
-                logger.debug("Failed to check recovered stream existence for %s", record.run_id, exc_info=True)
-        try:
-            await bridge.publish_end(record.run_id)
-        except Exception:
-            logger.warning(
-                "Failed to publish recovered run stream end for %s",
-                record.run_id,
-                exc_info=True,
-            )
-            continue
-        task = asyncio.create_task(bridge.cleanup(record.run_id, delay=cleanup_delay))
-        task.add_done_callback(lambda task, run_id=record.run_id: _log_recovered_stream_cleanup_result(task, run_id))
-
-
-def _log_recovered_stream_cleanup_result(task: asyncio.Task[None], run_id: str) -> None:
-    if task.cancelled():
-        return
-    try:
-        task.result()
-    except Exception:
-        logger.warning("Failed to clean up recovered run stream for %s", run_id, exc_info=True)
 
 
 if TYPE_CHECKING:
@@ -231,12 +171,6 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
     from deerflow.runtime.checkpointer.async_provider import make_checkpointer
     from deerflow.runtime.events.store import make_run_event_store
 
-    # ------------------------------------------------------------------
-    # Multi-worker safety gate: reject SQLite when GATEWAY_WORKERS > 1.
-    # SQLite write-locks cannot support concurrent multi-process access.
-    # ------------------------------------------------------------------
-    _enforce_postgres_for_multi_worker(startup_config)
-
     async with AsyncExitStack() as stack:
         config = startup_config
 
@@ -251,6 +185,11 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
 
         # Initialize repositories — one get_session_factory() call for all.
         sf = get_session_factory()
+        # 只有在 ORM 引擎和数据库迁移准备完成后才初始化领域服务。HTTP Route 与
+        # 模型可见 Tool 共享这些实例；使用 database.backend=memory 时这一点尤其重要。
+        from app.insurance.runtime import initialize_insurance_service
+
+        initialize_insurance_service(sf)
         if sf is not None:
             from deerflow.persistence.feedback import FeedbackRepository
             from deerflow.persistence.run import RunRepository
@@ -266,17 +205,6 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
         from deerflow.persistence.thread_meta import make_thread_store
 
         app.state.thread_store = make_thread_store(sf, app.state.store)
-        if sf is not None:
-            from deerflow.persistence.scheduled_task_runs import (
-                ScheduledTaskRunRepository,
-            )
-            from deerflow.persistence.scheduled_tasks import ScheduledTaskRepository
-
-            app.state.scheduled_task_repo = ScheduledTaskRepository(sf)
-            app.state.scheduled_task_run_repo = ScheduledTaskRunRepository(sf)
-        else:
-            app.state.scheduled_task_repo = None
-            app.state.scheduled_task_run_repo = None
 
         # Run event store. The store and the matching ``run_events_config`` are
         # both frozen at startup so ``get_run_context`` does not combine a
@@ -297,9 +225,6 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
                 error="Gateway restarted before this run reached a durable final state.",
                 before=now_iso(),
             )
-            sb_config = getattr(config, "stream_bridge", None)
-            cleanup_delay = getattr(sb_config, "recovered_stream_cleanup_delay_seconds", 60.0) if sb_config else 60.0
-            await _publish_recovered_run_stream_end(app.state.stream_bridge, recovered_runs, cleanup_delay=cleanup_delay)
             await _mark_latest_recovered_threads_error(app.state.run_manager, app.state.thread_store, recovered_runs)
 
         try:
@@ -313,6 +238,9 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
             run_manager = getattr(app.state, "run_manager", None)
             if run_manager is not None:
                 await _drain_inflight_runs(run_manager)
+            from app.insurance.runtime import reset_insurance_service
+
+            reset_insurance_service()
             await close_engine()
 
 
@@ -355,27 +283,6 @@ def get_thread_store(request: Request) -> ThreadMetaStore:
     return val
 
 
-def get_scheduled_task_repo(request: Request):
-    val = getattr(request.app.state, "scheduled_task_repo", None)
-    if val is None:
-        raise HTTPException(status_code=503, detail="Scheduled task repo not available")
-    return val
-
-
-def get_scheduled_task_run_repo(request: Request):
-    val = getattr(request.app.state, "scheduled_task_run_repo", None)
-    if val is None:
-        raise HTTPException(status_code=503, detail="Scheduled task run repo not available")
-    return val
-
-
-def get_scheduled_task_service(request: Request):
-    val = getattr(request.app.state, "scheduled_task_service", None)
-    if val is None:
-        raise HTTPException(status_code=503, detail="Scheduled task service not available")
-    return val
-
-
 def get_run_context(request: Request) -> RunContext:
     """Build a :class:`RunContext` from ``app.state`` singletons.
 
@@ -393,7 +300,6 @@ def get_run_context(request: Request) -> RunContext:
         run_events_config=getattr(request.app.state, "run_events_config", None),
         thread_store=get_thread_store(request),
         app_config=get_config(),
-        on_run_completed=getattr(request.app.state, "scheduled_task_service", None).handle_run_completion if getattr(request.app.state, "scheduled_task_service", None) is not None else None,
     )
 
 

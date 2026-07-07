@@ -918,13 +918,7 @@ class _FakeSandbox:
         self._write_ok = write_ok
         self._check_result = check_result
 
-    def execute_command(
-        self,
-        command: str,
-        env: dict[str, str] | None = None,
-        timeout: float | None = None,
-    ) -> str:
-        del env, timeout
+    def execute_command(self, command: str) -> str:
         self.commands.append(command)
         if command.startswith("test -s"):
             return self._check_result

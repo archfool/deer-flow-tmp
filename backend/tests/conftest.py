@@ -54,16 +54,8 @@ def provisioner_module():
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
-    previous_module = sys.modules.get(spec.name)
-    sys.modules[spec.name] = module
-    try:
-        spec.loader.exec_module(module)
-        yield module
-    finally:
-        if previous_module is None:
-            sys.modules.pop(spec.name, None)
-        else:
-            sys.modules[spec.name] = previous_module
+    spec.loader.exec_module(module)
+    return module
 
 
 # ---------------------------------------------------------------------------

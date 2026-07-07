@@ -1,5 +1,4 @@
 import importlib
-from pathlib import Path
 from types import SimpleNamespace
 
 import anyio
@@ -18,44 +17,23 @@ async def _async_result(decision: str, reason: str):
     return ScanResult(decision=decision, reason=reason)
 
 
-def _make_config(skills_root: Path):
-    return SimpleNamespace(
-        skills=SimpleNamespace(
-            get_skills_path=lambda: skills_root,
-            container_path="/mnt/skills",
-            use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage",
-        ),
-        skill_evolution=SimpleNamespace(enabled=True, moderation_model_name=None),
-    )
-
-
-def _make_runtime(*, thread_id: str = "thread-1", user_id: str = "default"):
-    return SimpleNamespace(
-        context={"thread_id": thread_id, "user_id": user_id},
-        config={"configurable": {"thread_id": thread_id, "user_id": user_id}},
-    )
-
-
 def test_skill_manage_create_and_patch(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
-    config = _make_config(skills_root)
+    config = SimpleNamespace(
+        skills=SimpleNamespace(get_skills_path=lambda: skills_root, container_path="/mnt/skills", use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+        skill_evolution=SimpleNamespace(enabled=True, moderation_model_name=None),
+    )
     monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
     monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    # Patch get_paths so UserScopedSkillStorage resolves user dirs under tmp_path
-    from deerflow.config.paths import Paths
-
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
-
     refresh_calls = []
 
-    async def _refresh(user_id: str):
-        refresh_calls.append(("refresh", user_id))
+    async def _refresh():
+        refresh_calls.append("refresh")
 
-    monkeypatch.setattr(skill_manage_module, "refresh_user_skills_system_prompt_cache_async", _refresh)
+    monkeypatch.setattr(skill_manage_module, "refresh_skills_system_prompt_cache_async", _refresh)
     monkeypatch.setattr(skill_manage_module, "scan_skill_content", lambda *args, **kwargs: _async_result("allow", "ok"))
 
-    runtime = _make_runtime(user_id="default")
+    runtime = SimpleNamespace(context={"thread_id": "thread-1"}, config={"configurable": {"thread_id": "thread-1"}})
 
     result = anyio.run(
         skill_manage_module.skill_manage_tool.coroutine,
@@ -78,29 +56,26 @@ def test_skill_manage_create_and_patch(monkeypatch, tmp_path):
         1,
     )
     assert "Patched custom skill" in patch_result
-    # User-scoped: custom skills written under users/default/skills/custom/
-    user_custom = tmp_path / "users" / "default" / "skills" / "custom"
-    assert "Patched skill" in (user_custom / "demo-skill" / "SKILL.md").read_text(encoding="utf-8")
-    assert refresh_calls == [("refresh", "default"), ("refresh", "default")]
+    assert "Patched skill" in (skills_root / "custom" / "demo-skill" / "SKILL.md").read_text(encoding="utf-8")
+    assert refresh_calls == ["refresh", "refresh"]
 
 
 def test_skill_manage_patch_replaces_single_occurrence_by_default(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
-    config = _make_config(skills_root)
+    config = SimpleNamespace(
+        skills=SimpleNamespace(get_skills_path=lambda: skills_root, container_path="/mnt/skills", use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+        skill_evolution=SimpleNamespace(enabled=True, moderation_model_name=None),
+    )
     monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
     monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
-
-    async def _refresh(user_id: str):
+    async def _refresh():
         return None
 
-    monkeypatch.setattr(skill_manage_module, "refresh_user_skills_system_prompt_cache_async", _refresh)
+    monkeypatch.setattr(skill_manage_module, "refresh_skills_system_prompt_cache_async", _refresh)
     monkeypatch.setattr(skill_manage_module, "scan_skill_content", lambda *args, **kwargs: _async_result("allow", "ok"))
 
-    runtime = _make_runtime(user_id="default")
+    runtime = SimpleNamespace(context={"thread_id": "thread-1"}, config={"configurable": {"thread_id": "thread-1"}})
     content = _skill_content("demo-skill", "Demo skill") + "\nRepeated: Demo skill\n"
 
     anyio.run(skill_manage_module.skill_manage_tool.coroutine, runtime, "create", "demo-skill", content)
@@ -115,8 +90,7 @@ def test_skill_manage_patch_replaces_single_occurrence_by_default(monkeypatch, t
         "Patched skill",
     )
 
-    user_custom = tmp_path / "users" / "default" / "skills" / "custom"
-    skill_text = (user_custom / "demo-skill" / "SKILL.md").read_text(encoding="utf-8")
+    skill_text = (skills_root / "custom" / "demo-skill" / "SKILL.md").read_text(encoding="utf-8")
     assert "1 replacement(s) applied, 2 match(es) found" in patch_result
     assert skill_text.count("Patched skill") == 1
     assert skill_text.count("Demo skill") == 1
@@ -127,14 +101,13 @@ def test_skill_manage_rejects_public_skill_patch(monkeypatch, tmp_path):
     public_dir = skills_root / "public" / "deep-research"
     public_dir.mkdir(parents=True, exist_ok=True)
     (public_dir / "SKILL.md").write_text(_skill_content("deep-research"), encoding="utf-8")
-    config = _make_config(skills_root)
+    config = SimpleNamespace(
+        skills=SimpleNamespace(get_skills_path=lambda: skills_root, container_path="/mnt/skills", use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+        skill_evolution=SimpleNamespace(enabled=True, moderation_model_name=None),
+    )
     monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
-
-    runtime = _make_runtime(user_id="default")
+    runtime = SimpleNamespace(context={}, config={"configurable": {}})
 
     with pytest.raises(ValueError, match="built-in skill"):
         anyio.run(
@@ -151,22 +124,20 @@ def test_skill_manage_rejects_public_skill_patch(monkeypatch, tmp_path):
 
 def test_skill_manage_sync_wrapper_supported(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
-    config = _make_config(skills_root)
+    config = SimpleNamespace(
+        skills=SimpleNamespace(get_skills_path=lambda: skills_root, container_path="/mnt/skills", use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+        skill_evolution=SimpleNamespace(enabled=True, moderation_model_name=None),
+    )
     monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
-
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
-
     refresh_calls = []
 
-    async def _refresh(user_id: str):
-        refresh_calls.append(("refresh", user_id))
+    async def _refresh():
+        refresh_calls.append("refresh")
 
-    monkeypatch.setattr(skill_manage_module, "refresh_user_skills_system_prompt_cache_async", _refresh)
+    monkeypatch.setattr(skill_manage_module, "refresh_skills_system_prompt_cache_async", _refresh)
     monkeypatch.setattr(skill_manage_module, "scan_skill_content", lambda *args, **kwargs: _async_result("allow", "ok"))
 
-    runtime = _make_runtime(thread_id="thread-sync", user_id="default")
+    runtime = SimpleNamespace(context={"thread_id": "thread-sync"}, config={"configurable": {"thread_id": "thread-sync"}})
     result = skill_manage_module.skill_manage_tool.func(
         runtime=runtime,
         action="create",
@@ -175,26 +146,25 @@ def test_skill_manage_sync_wrapper_supported(monkeypatch, tmp_path):
     )
 
     assert "Created custom skill" in result
-    assert refresh_calls == [("refresh", "default")]
+    assert refresh_calls == ["refresh"]
 
 
 def test_skill_manage_rejects_support_path_traversal(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
-    config = _make_config(skills_root)
+    config = SimpleNamespace(
+        skills=SimpleNamespace(get_skills_path=lambda: skills_root, container_path="/mnt/skills", use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+        skill_evolution=SimpleNamespace(enabled=True, moderation_model_name=None),
+    )
     monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
     monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
-
-    async def _refresh(user_id: str):
+    async def _refresh():
         return None
 
-    monkeypatch.setattr(skill_manage_module, "refresh_user_skills_system_prompt_cache_async", _refresh)
+    monkeypatch.setattr(skill_manage_module, "refresh_skills_system_prompt_cache_async", _refresh)
     monkeypatch.setattr(skill_manage_module, "scan_skill_content", lambda *args, **kwargs: _async_result("allow", "ok"))
 
-    runtime = _make_runtime(user_id="default")
+    runtime = SimpleNamespace(context={"thread_id": "thread-1"}, config={"configurable": {"thread_id": "thread-1"}})
     anyio.run(skill_manage_module.skill_manage_tool.coroutine, runtime, "create", "demo-skill", _skill_content("demo-skill"))
 
     with pytest.raises(ValueError, match="parent-directory traversal|selected support directory"):
@@ -206,52 +176,3 @@ def test_skill_manage_rejects_support_path_traversal(monkeypatch, tmp_path):
             "malicious overwrite",
             "references/../SKILL.md",
         )
-
-
-def test_skill_manage_per_user_isolation(monkeypatch, tmp_path):
-    """Two different users must get separate custom skill directories."""
-    skills_root = tmp_path / "skills"
-    config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
-
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
-
-    async def _refresh(user_id: str):
-        return None
-
-    monkeypatch.setattr(skill_manage_module, "refresh_user_skills_system_prompt_cache_async", _refresh)
-    monkeypatch.setattr(skill_manage_module, "scan_skill_content", lambda *args, **kwargs: _async_result("allow", "ok"))
-
-    # Alice creates a skill
-    runtime_alice = _make_runtime(user_id="alice")
-    result_a = anyio.run(
-        skill_manage_module.skill_manage_tool.coroutine,
-        runtime_alice,
-        "create",
-        "alice-skill",
-        _skill_content("alice-skill"),
-    )
-    assert "Created custom skill" in result_a
-
-    # Bob creates a different skill
-    runtime_bob = _make_runtime(user_id="bob")
-    result_b = anyio.run(
-        skill_manage_module.skill_manage_tool.coroutine,
-        runtime_bob,
-        "create",
-        "bob-skill",
-        _skill_content("bob-skill"),
-    )
-    assert "Created custom skill" in result_b
-
-    # Verify separate directories
-    alice_dir = tmp_path / "users" / "alice" / "skills" / "custom" / "alice-skill"
-    bob_dir = tmp_path / "users" / "bob" / "skills" / "custom" / "bob-skill"
-    assert alice_dir.exists()
-    assert bob_dir.exists()
-    # No cross-contamination
-    assert not (tmp_path / "users" / "alice" / "skills" / "custom" / "bob-skill").exists()
-    assert not (tmp_path / "users" / "bob" / "skills" / "custom" / "alice-skill").exists()

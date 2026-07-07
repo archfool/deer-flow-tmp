@@ -68,9 +68,9 @@ models:
   <Tabs.Tab>
 ```yaml
 models:
-  - name: deepseek-v4
+  - name: deepseek-v3
     use: deerflow.models.patched_deepseek:PatchedChatDeepSeek
-    model: deepseek-v4-pro
+    model: deepseek-reasoner
     api_key: $DEEPSEEK_API_KEY
     timeout: 600.0
     max_retries: 2
@@ -182,40 +182,32 @@ tools:
   - use: deerflow.sandbox.tools:bash_tool
 ```
 
-### Database backend
+### Thread state persistence (checkpointer)
 
-DeerFlow uses the `database` section for both LangGraph checkpoint data and application data such as runs, feedback, and thread metadata.
-
-By default, DeerFlow uses SQLite for local, single-node persistence:
+By default, DeerFlow uses an SQLite checkpointer for thread state persistence:
 
 ```yaml
-database:
-  backend: sqlite
-  sqlite_dir: .deer-flow/data
+checkpointer:
+  type: sqlite
+  connection_string: checkpoints.db # stored in backend/.deer-flow/
 ```
 
-SQLite mode stores everything in one `deerflow.db` file. This is fine for development or single-user deployments, but concurrent production traffic can hit SQLite's single-writer limit and raise `sqlite3.OperationalError: database is locked`.
-
-For production or multi-user deployments, use Postgres:
+For production deployments with multiple processes:
 
 ```yaml
-database:
-  backend: postgres
-  postgres_url: $DATABASE_URL
-
-run_events:
-  backend: db
+checkpointer:
+  type: postgres
+  connection_string: postgresql://user:password@localhost:5432/deerflow
 ```
 
-Set `DATABASE_URL` in your environment, for example `postgresql://user:password@localhost:5432/deerflow`.
+Install PostgreSQL support: `cd backend && uv add langgraph-checkpoint-postgres psycopg[binary] psycopg-pool`
 
-Install PostgreSQL support for local runs:
+For in-memory only (state lost on restart):
 
-```bash
-cd backend && uv sync --all-packages --extra postgres
+```yaml
+checkpointer:
+  type: memory
 ```
-
-For Docker or scripted starts, set `UV_EXTRAS=postgres` before installing or building. The legacy standalone `checkpointer` section is still accepted for compatibility, but prefer `database` for new deployments.
 
 ### Memory
 

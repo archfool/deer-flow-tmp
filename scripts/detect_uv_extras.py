@@ -10,9 +10,6 @@ Order of resolution:
 2. Auto-detection from config.yaml — currently maps:
    - database.backend == postgres        -> postgres
    - checkpointer.type == postgres       -> postgres
-   - stream_bridge.type == redis         -> redis
-3. Runtime environment toggles that enable optional backends:
-   - DEER_FLOW_STREAM_BRIDGE_REDIS_URL   -> redis
 
 Each extra name is validated against ``^[A-Za-z][A-Za-z0-9_-]*$`` (the same
 shape uv enforces for `[project.optional-dependencies]` keys). Anything else
@@ -231,41 +228,19 @@ def detect_from_config(path: Path) -> list[str]:
         extras.add("postgres")
     if (section_value(lines, "checkpointer", "type") or "").lower() == "postgres":
         extras.add("postgres")
-    if (section_value(lines, "stream_bridge", "type") or "").lower() == "redis":
-        extras.add("redis")
     if (nested_section_value(lines, "channels.discord", "enabled") or "").lower() == "true":
         extras.add("discord")
     return sorted(extras)
 
 
-def detect_from_runtime_env() -> list[str]:
-    extras: set[str] = set()
-    if os.environ.get("DEER_FLOW_STREAM_BRIDGE_REDIS_URL", "").strip():
-        extras.add("redis")
-    return sorted(extras)
-
-
-def merge_extras(*groups: list[str]) -> list[str]:
-    merged: list[str] = []
-    seen: set[str] = set()
-    for group in groups:
-        for extra in group:
-            if extra in seen:
-                continue
-            seen.add(extra)
-            merged.append(extra)
-    return merged
-
-
 def resolve_extras() -> list[str]:
-    runtime_env_extras = detect_from_runtime_env()
     env = os.environ.get("UV_EXTRAS", "")
     if env.strip():
-        return merge_extras(parse_env_extras(env), runtime_env_extras)
+        return parse_env_extras(env)
     config = find_config_file()
     if config is None:
-        return runtime_env_extras
-    return merge_extras(detect_from_config(config), runtime_env_extras)
+        return []
+    return detect_from_config(config)
 
 
 def format_flags(extras: list[str]) -> str:

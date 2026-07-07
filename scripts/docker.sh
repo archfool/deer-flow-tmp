@@ -191,9 +191,9 @@ start() {
 
     sandbox_mode="$(detect_sandbox_mode)"
 
-    services="redis frontend gateway nginx"
+    services="frontend gateway nginx"
     if [ "$sandbox_mode" = "provisioner" ]; then
-        services="redis frontend gateway provisioner nginx"
+        services="frontend gateway provisioner nginx"
     fi
 
     # Only aio mode (AioSandboxProvider without provisioner_url) needs the host
@@ -296,10 +296,6 @@ logs() {
             service="nginx"
             echo -e "${BLUE}Viewing nginx logs...${NC}"
             ;;
-        --redis)
-            service="redis"
-            echo -e "${BLUE}Viewing redis logs...${NC}"
-            ;;
         --provisioner)
             service="provisioner"
             echo -e "${BLUE}Viewing provisioner logs...${NC}"
@@ -309,7 +305,7 @@ logs() {
             ;;
         *)
             echo -e "${YELLOW}Unknown option: $1${NC}"
-            echo "Usage: $0 logs [--frontend|--gateway|--nginx|--redis|--provisioner]"
+            echo "Usage: $0 logs [--frontend|--gateway|--nginx|--provisioner]"
             exit 1
             ;;
     esac
@@ -361,7 +357,6 @@ help() {
     echo "                  --frontend   View frontend logs only"
     echo "                  --gateway    View gateway logs only"
     echo "                  --nginx      View nginx logs only"
-    echo "                  --redis      View redis logs only"
     echo "                  --provisioner View provisioner logs only"
     echo "  stop          - Stop Docker development services"
     echo "  help          - Show this help message"

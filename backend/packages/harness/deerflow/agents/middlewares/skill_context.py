@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import logging
 import posixpath
 import re
-from collections.abc import Collection, Mapping
+from collections.abc import Collection
 from html import escape
-from typing import Any, TypedDict
+from typing import Any
 
 import yaml
 from langchain_core.messages import AIMessage, AnyMessage, ToolMessage
@@ -16,13 +15,6 @@ from deerflow.agents.thread_state import _SKILL_DESCRIPTION_MAX_CHARS, SkillEntr
 
 _SKILL_FILE_NAME = "SKILL.md"
 _FRONT_MATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
-SKILL_CONTEXT_ENTRY_KEY = "skill_context_entry"
-logger = logging.getLogger(__name__)
-
-
-class SkillEntryMetadata(TypedDict):
-    path: str
-    description: str
 
 
 def _tool_call_name(tool_call: dict[str, Any]) -> str:
@@ -88,38 +80,6 @@ def _is_tool_error_text(content: str) -> bool:
     return content.lstrip().startswith("Error:")
 
 
-def build_skill_entry_metadata_from_read(
-    path: str,
-    content: str,
-    *,
-    skills_root: str,
-) -> SkillEntryMetadata | None:
-    normalized_root = posixpath.normpath(skills_root.rstrip("/") or "/")
-    normalized_path = _normalize_under_root(path, normalized_root)
-    if normalized_path is None or not _is_skill_file(normalized_path) or _is_tool_error_text(content):
-        return None
-    return {
-        "path": normalized_path,
-        "description": _parse_description(content),
-    }
-
-
-def read_skill_entry_metadata(additional_kwargs: Mapping[str, object] | None) -> SkillEntryMetadata | None:
-    if not additional_kwargs:
-        return None
-    raw = additional_kwargs.get(SKILL_CONTEXT_ENTRY_KEY)
-    if not isinstance(raw, Mapping):
-        return None
-    path = raw.get("path")
-    description = raw.get("description")
-    if not isinstance(path, str):
-        return None
-    return {
-        "path": path,
-        "description": " ".join(description.split())[:_SKILL_DESCRIPTION_MAX_CHARS] if isinstance(description, str) else "",
-    }
-
-
 def _escape_context_text(value: object) -> str:
     return escape(str(value), quote=False)
 
@@ -154,28 +114,17 @@ def extract_skills(
         if getattr(message, "status", "success") == "error":
             continue
         tool_call_id = str(message.tool_call_id) if message.tool_call_id else ""
-        expected_path = skill_paths_by_id.get(tool_call_id)
-        if expected_path is None:
+        path = skill_paths_by_id.get(tool_call_id)
+        if path is None:
             continue
-        metadata = read_skill_entry_metadata(message.additional_kwargs)
-        if metadata is None:
-            content = message.content if isinstance(message.content, str) else ""
-            if not _is_tool_error_text(content):
-                logger.warning("missing skill read metadata: tool_call_id=%s path=%s", tool_call_id, expected_path)
-            continue
-        if metadata["path"] != expected_path:
-            logger.warning(
-                "mismatched skill read metadata: tool_call_id=%s expected_path=%s metadata_path=%s",
-                tool_call_id,
-                expected_path,
-                metadata["path"],
-            )
+        content = message.content if isinstance(message.content, str) else str(message.content)
+        if _is_tool_error_text(content):
             continue
         entries.append(
             {
-                "name": _skill_name_from_path(expected_path),
-                "path": expected_path,
-                "description": metadata["description"],
+                "name": _skill_name_from_path(path),
+                "path": path,
+                "description": _parse_description(content),
                 "loaded_at": index,
             }
         )

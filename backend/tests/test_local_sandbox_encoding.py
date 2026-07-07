@@ -86,16 +86,12 @@ def test_execute_command_uses_powershell_command_mode_on_windows(monkeypatch):
         return SimpleNamespace(stdout="ok", stderr="", returncode=0)
 
     monkeypatch.setattr(local_sandbox.os, "name", "nt")
-    monkeypatch.setattr(local_sandbox.os, "environ", {"PATH": r"C:\Windows", "OPENAI_API_KEY": "should-not-leak"})
     monkeypatch.setattr(LocalSandbox, "_get_shell", staticmethod(lambda: r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"))
     monkeypatch.setattr(local_sandbox.subprocess, "run", fake_run)
 
     output = LocalSandbox("t").execute_command("Write-Output hello")
 
     assert output == "ok"
-    # Platform secrets are scrubbed from the inherited environment even on the
-    # Windows PowerShell path (#3861); benign PATH is preserved and the env is an
-    # explicit scrubbed dict, no longer None.
     assert calls == [
         (
             [
@@ -109,7 +105,7 @@ def test_execute_command_uses_powershell_command_mode_on_windows(monkeypatch):
                 "capture_output": True,
                 "text": True,
                 "timeout": 600,
-                "env": {"PATH": r"C:\Windows"},
+                "env": None,
             },
         )
     ]
@@ -156,17 +152,13 @@ def test_execute_command_does_not_set_msys_env_for_non_msys_posix_shell_on_windo
         return SimpleNamespace(stdout="ok", stderr="", returncode=0)
 
     monkeypatch.setattr(local_sandbox.os, "name", "nt")
-    monkeypatch.setattr(local_sandbox.os, "environ", {"PATH": r"C:\tools"})
     monkeypatch.setattr(LocalSandbox, "_get_shell", staticmethod(lambda: r"C:\tools\busybox\sh.exe"))
     monkeypatch.setattr(local_sandbox.subprocess, "run", fake_run)
 
     output = LocalSandbox("t").execute_command("echo /mnt/skills/demo")
 
     assert output == "ok"
-    # Non-MSYS posix shell adds no MSYS_* vars; the env is the scrubbed inherited
-    # environment, not None (#3861).
-    assert calls[0][1]["env"] == {"PATH": r"C:\tools"}
-    assert "MSYS_NO_PATHCONV" not in calls[0][1]["env"]
+    assert calls[0][1]["env"] is None
 
 
 def test_execute_command_uses_cmd_command_mode_on_windows(monkeypatch):
@@ -177,15 +169,12 @@ def test_execute_command_uses_cmd_command_mode_on_windows(monkeypatch):
         return SimpleNamespace(stdout="ok", stderr="", returncode=0)
 
     monkeypatch.setattr(local_sandbox.os, "name", "nt")
-    monkeypatch.setattr(local_sandbox.os, "environ", {"PATH": r"C:\Windows", "GITHUB_TOKEN": "should-not-leak"})
     monkeypatch.setattr(LocalSandbox, "_get_shell", staticmethod(lambda: r"C:\Windows\System32\cmd.exe"))
     monkeypatch.setattr(local_sandbox.subprocess, "run", fake_run)
 
     output = LocalSandbox("t").execute_command("echo hello")
 
     assert output == "ok"
-    # Platform secrets are scrubbed even on the Windows cmd path (#3861); the env
-    # is an explicit scrubbed dict, no longer None.
     assert calls == [
         (
             [r"C:\Windows\System32\cmd.exe", "/c", "echo hello"],
@@ -194,7 +183,7 @@ def test_execute_command_uses_cmd_command_mode_on_windows(monkeypatch):
                 "capture_output": True,
                 "text": True,
                 "timeout": 600,
-                "env": {"PATH": r"C:\Windows"},
+                "env": None,
             },
         )
     ]

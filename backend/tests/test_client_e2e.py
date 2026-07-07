@@ -563,14 +563,9 @@ class TestSkillInstallation:
         (skills_root / "custom").mkdir(parents=True)
         from deerflow.skills.storage.local_skill_storage import LocalSkillStorage
 
-        local_storage = LocalSkillStorage(host_path=str(skills_root))
         monkeypatch.setattr(
             "deerflow.skills.storage._default_skill_storage",
-            local_storage,
-        )
-        monkeypatch.setattr(
-            "deerflow.client.get_or_new_user_skill_storage",
-            lambda user_id, **kwargs: local_storage,
+            LocalSkillStorage(host_path=str(skills_root)),
         )
         self._skills_root = skills_root
 

@@ -4,5 +4,4 @@ export interface Skill {
   category: string;
   license: string;
   enabled: boolean;
-  editable: boolean;
 }

@@ -50,8 +50,6 @@ def test_backend_dockerfile_expands_multiple_uv_extras(tmp_path):
     assert capture.read_text(encoding="utf-8").splitlines() == [
         "sync",
         "--extra",
-        "redis",
-        "--extra",
         "discord",
         "--extra",
         "postgres",
