@@ -12,6 +12,7 @@ import {
   hasContent,
   hasReasoning,
   isAssistantMessageGroupStreaming,
+  isHiddenFromUIMessage,
   stripUploadedFilesTag,
 } from "@/core/messages/utils";
 
@@ -22,6 +23,17 @@ function aiMessage(content: string): Message {
     content,
   } as Message;
 }
+
+test("hides persistent coverage review status behind the live task card", () => {
+  const message = {
+    id: "insurance-status",
+    type: "ai",
+    content: "还缺少查询客户中心所需的基础信息，请补充后再启动保障检视。",
+    additional_kwargs: { insurance_coverage_review_router: "status" },
+  } as Message;
+
+  expect(isHiddenFromUIMessage(message)).toBe(true);
+});
 
 test("aggregates token usage messages once per assistant turn", () => {
   const messages = [

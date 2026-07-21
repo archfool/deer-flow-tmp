@@ -40,6 +40,10 @@ import { useArtifacts } from "../artifacts";
 import { FlipDisplay } from "../flip-display";
 import { Tooltip } from "../tooltip";
 
+import {
+  CoverageReviewTask,
+  isCoverageReviewEnvelope,
+} from "./coverage-review-task";
 import { MarkdownContent } from "./markdown-content";
 
 export function MessageGroup({
@@ -441,6 +445,19 @@ function ToolCall({
     ) : (
       fallback
     );
+
+  if (
+    (name === "insurance_coverage_review_intake" ||
+      name === "insurance_coverage_review") &&
+    isCoverageReviewEnvelope(result)
+  ) {
+    return (
+      <CoverageReviewTask
+        initialEnvelope={result}
+        autoAdvance={isLast && !isLoading}
+      />
+    );
+  }
 
   if (name === "web_search") {
     let label: React.ReactNode = t.toolCalls.searchForRelatedInfo;

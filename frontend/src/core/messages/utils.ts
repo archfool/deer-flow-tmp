@@ -508,6 +508,7 @@ export function isHiddenFromUIMessage(message: Message) {
   const content = extractTextFromMessage(message);
   return (
     message.additional_kwargs?.hide_from_ui === true ||
+    message.additional_kwargs?.insurance_coverage_review_router === "status" ||
     (typeof message.name === "string" &&
       HIDDEN_CONTROL_MESSAGE_NAMES.has(message.name)) ||
     (message.type === "human" &&

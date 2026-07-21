@@ -1,0 +1,186 @@
+{
+  "version": "reason-v2.1",
+  "reasons": [
+    {
+      "code": "INCOME_REPLACE_GAP",
+      "category": "gap",
+      "dimensions": ["D4"],
+      "framework_code": "FAMILY_NEED_PLUS_HLV",
+      "explanation": "家庭需求下限与生命价值上限双锚",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "DEBT_UNCOVERED",
+      "category": "gap",
+      "dimensions": ["D4"],
+      "framework_code": "DEBT_ANCHOR",
+      "explanation": "未偿债务是身故责任的硬数字",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "CRITICAL_ILLNESS_GAP",
+      "category": "gap",
+      "dimensions": ["D1"],
+      "framework_code": "TREATMENT_PLUS_INCOME",
+      "explanation": "治疗费用与收入中断双因子",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "MEDICAL_LIABILITY_GAP",
+      "category": "gap",
+      "dimensions": ["D2"],
+      "framework_code": "MEDICAL_LIABILITY_LAYERS",
+      "explanation": "按医疗责任范围判断，不强行换算金额",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "DISABILITY_GAP",
+      "category": "gap",
+      "dimensions": ["D3"],
+      "framework_code": "EARNING_CAPACITY_IMPACT",
+      "explanation": "伤残后持续工作能力、收入与照护影响",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "RETIRE_CASHFLOW_GAP",
+      "category": "gap",
+      "dimensions": ["B1"],
+      "framework_code": "RETIREMENT_CASHFLOW",
+      "explanation": "目标退休现金流与已有现金流的差",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "LONGTERM_CARE_GAP",
+      "category": "gap",
+      "dimensions": ["D5"],
+      "framework_code": "CARE_COST_DURATION",
+      "explanation": "年度护理成本与预计持续年限",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "WEALTH_MGMT_GAP",
+      "category": "gap",
+      "dimensions": ["A1"],
+      "framework_code": "WEALTH_CERTAINTY",
+      "explanation": "稳定性与确定性，不做收益承诺",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "LEGACY_ARRANGE_GAP",
+      "category": "gap",
+      "dimensions": ["C1"],
+      "framework_code": "HNW_TRIANGLE",
+      "explanation": "控制权、确定性和传承结构",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "EMERGENCY_LIQUIDITY_ALERT",
+      "category": "auxiliary",
+      "dimensions": [],
+      "framework_code": "LIQUIDITY_MONTHS",
+      "explanation": "家庭备用金可覆盖月数",
+      "actions": [],
+      "phase": "auxiliary"
+    },
+    {
+      "code": "COVER_SUFFICIENT",
+      "category": "preserve",
+      "dimensions": ["D1", "D2", "D3", "D5", "D4", "A1", "B1", "C1"],
+      "framework_code": "PRESERVE_SUFFICIENT",
+      "explanation": "该维已经充足，建议维持",
+      "actions": ["maintain"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "REDUNDANT_COVERAGE",
+      "category": "preserve",
+      "dimensions": ["D1", "D2", "D3", "D5", "D4", "A1", "B1", "C1"],
+      "framework_code": "PRESERVE_NO_DUPLICATION",
+      "explanation": "继续叠加边际价值较低",
+      "actions": ["maintain"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "LEGACY_POLICY_PREMIUM",
+      "category": "preserve",
+      "dimensions": ["D1", "D2", "D3", "D5", "D4", "A1", "B1", "C1"],
+      "framework_code": "PRESERVE_LEGACY_POLICY",
+      "explanation": "有直接条款证据时保留优质旧单",
+      "actions": ["maintain"],
+      "phase": "phase_2"
+    },
+    {
+      "code": "STRUCTURE_MISALLOC",
+      "category": "correction",
+      "dimensions": ["D4", "A1", "C1"],
+      "framework_code": "CORRECT_STRUCTURE",
+      "explanation": "跨维配置方向失衡",
+      "actions": ["adjust"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "DUPLICATE_POLICY",
+      "category": "correction",
+      "dimensions": ["D1", "D2", "D3", "D5", "D4", "A1", "B1", "C1"],
+      "framework_code": "CORRECT_DUPLICATION",
+      "explanation": "逐单证据支持的重复投保",
+      "actions": ["adjust", "reduced_paid_up"],
+      "phase": "phase_2"
+    },
+    {
+      "code": "COVERAGE_MISMATCH",
+      "category": "correction",
+      "dimensions": ["D1", "D2", "D3", "D5", "D4"],
+      "framework_code": "CORRECT_MISMATCH",
+      "explanation": "成员角色与保障归属不匹配",
+      "actions": ["adjust"],
+      "phase": "phase_1"
+    },
+    {
+      "code": "NO_NEED_LIFESTAGE",
+      "category": "no_need",
+      "dimensions": ["D5", "C1"],
+      "framework_code": "NO_NEED_EXPLANATION",
+      "explanation": "当前人生阶段暂不需要",
+      "actions": [],
+      "phase": "phase_1"
+    },
+    {
+      "code": "COVERAGE_EXPIRY",
+      "category": "structure_time",
+      "dimensions": ["D1", "D2", "D3", "D5", "D4"],
+      "framework_code": "FUTURE_EXPIRY",
+      "explanation": "现有保障到期后的未来空白",
+      "actions": ["new_policy", "add_coverage"],
+      "phase": "phase_2"
+    },
+    {
+      "code": "TERM_OUTDATED",
+      "category": "structure_time",
+      "dimensions": ["D1", "D2", "D3", "D5", "D4"],
+      "framework_code": "TERM_CHANGE",
+      "explanation": "保障环境变化导致条款结构需要复核",
+      "actions": ["adjust", "new_policy"],
+      "phase": "phase_2"
+    },
+    {
+      "code": "BENEFICIARY_ERROR",
+      "category": "structure_time",
+      "dimensions": ["D4", "C1"],
+      "framework_code": "BENEFICIARY_REVIEW",
+      "explanation": "受益人信息与当前家庭关系不一致",
+      "actions": [],
+      "special_operation": "beneficiary_service_change",
+      "phase": "phase_2"
+    }
+  ]
+}

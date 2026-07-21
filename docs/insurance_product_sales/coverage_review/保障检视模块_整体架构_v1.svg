@@ -1,0 +1,274 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600" role="img" aria-labelledby="title desc">
+  <title id="title">企业级保障检视智能体算法架构</title>
+  <desc id="desc">基于 DeerFlow 的保障检视算法架构，展示工作流、确定性诊断内核、工具、规则、技能、模型、人工复核和评测体系。</desc>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#19362f" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#355b52"/>
+    </marker>
+    <marker id="arrowAccent" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .title { font: 700 38px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #16332d; }
+      .subtitle { font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #4c665f; }
+      .section { font: 700 19px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #25463e; }
+      .cardTitle { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #183b34; }
+      .cardText { font: 400 14px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #435d57; }
+      .stepNo { font: 700 14px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #ffffff; }
+      .stepTitle { font: 700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #183b34; }
+      .stepText { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #4b625d; }
+      .small { font: 500 12px -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; fill: #55706a; }
+      .mono { font: 600 12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; fill: #36564f; }
+      .flow { fill: none; stroke: #355b52; stroke-width: 3; marker-end: url(#arrow); }
+      .flowAccent { fill: none; stroke: #0f766e; stroke-width: 4; marker-end: url(#arrowAccent); }
+      .support { fill: none; stroke: #66827b; stroke-width: 2.5; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+      .border { stroke: #b7c8c3; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1600" fill="#f7faf8"/>
+  <rect x="0" y="0" width="1600" height="16" fill="#0f766e"/>
+
+  <text x="64" y="70" class="title">企业级保障检视智能体算法架构</text>
+  <text x="64" y="104" class="subtitle">DeerFlow 负责图编排与中断恢复，规则引擎负责判断，模型只做受约束的抽取与表达</text>
+  <text x="1536" y="71" text-anchor="end" class="mono">ARCH v1.0 · 2026-07-15</text>
+
+  <!-- Interaction and orchestration -->
+  <rect x="48" y="136" width="1504" height="156" rx="8" fill="#eef6f2" class="border"/>
+  <text x="70" y="168" class="section">交互与编排</text>
+
+  <g filter="url(#shadow)">
+    <rect x="82" y="190" width="250" height="72" rx="8" fill="#ffffff" class="border"/>
+    <rect x="380" y="190" width="270" height="72" rx="8" fill="#ffffff" class="border"/>
+    <rect x="698" y="181" width="820" height="90" rx="8" fill="#dff3ec" stroke="#69a996" stroke-width="2"/>
+  </g>
+  <text x="207" y="220" text-anchor="middle" class="cardTitle">保险代理人</text>
+  <text x="207" y="244" text-anchor="middle" class="cardText">发起、补充事实、复核、批准</text>
+
+  <text x="515" y="220" text-anchor="middle" class="cardTitle">保障检视 Lead Agent</text>
+  <text x="515" y="244" text-anchor="middle" class="cardText">对话入口与结构化意图转换</text>
+
+  <text x="1108" y="214" text-anchor="middle" class="cardTitle">DeerFlow Workflow Controller</text>
+  <text x="1108" y="239" text-anchor="middle" class="cardText">FSM · 条件边 · interrupt/checkpoint · revision · 最小重跑</text>
+  <text x="1108" y="260" text-anchor="middle" class="small">只调度节点，不生成诊断结论</text>
+
+  <path d="M332 226 H368" class="flow"/>
+  <path d="M650 226 H686" class="flow"/>
+
+  <!-- Main workflow -->
+  <rect x="48" y="322" width="1504" height="490" rx="8" fill="#ffffff" class="border"/>
+  <text x="70" y="357" class="section">核心 Workflow / FSM</text>
+  <text x="1530" y="357" text-anchor="end" class="mono">真实运行顺序：1 → 2 → 3 → 5 → 4 → 6</text>
+
+  <!-- Step 1 -->
+  <g filter="url(#shadow)">
+    <rect x="76" y="395" width="220" height="220" rx="8" fill="#f2f7ff" stroke="#8ca9cf" stroke-width="1.5"/>
+  </g>
+  <rect x="92" y="411" width="56" height="26" rx="6" fill="#3e6ea8"/>
+  <text x="120" y="429" text-anchor="middle" class="stepNo">步骤 1</text>
+  <text x="92" y="468" class="stepTitle">数据与追问</text>
+  <text x="92" y="497" class="stepText">
+    <tspan x="92" dy="0">客户中心 + 内部档案</tspan>
+    <tspan x="92" dy="23">中保信报告抽取</tspan>
+    <tspan x="92" dy="23">29 类触发场景</tspan>
+    <tspan x="92" dy="23">阻塞 / 冲突 / 增益追问</tspan>
+  </text>
+  <text x="92" y="594" class="mono">EvidenceBundle</text>
+
+  <!-- Step 2 -->
+  <g filter="url(#shadow)">
+    <rect x="326" y="395" width="220" height="220" rx="8" fill="#fff8e8" stroke="#d2a84e" stroke-width="1.5"/>
+  </g>
+  <rect x="342" y="411" width="56" height="26" rx="6" fill="#aa7420"/>
+  <text x="370" y="429" text-anchor="middle" class="stepNo">步骤 2</text>
+  <text x="342" y="468" class="stepTitle">精确测算</text>
+  <text x="342" y="497" class="stepText">
+    <tspan x="342" dy="0">标准化测算请求</tspan>
+    <tspan x="342" dy="23">调用唯一精算 Tool</tspan>
+    <tspan x="342" dy="23">校验 D1-D8 与 D3</tspan>
+    <tspan x="342" dy="23">分离辅助财务指标</tspan>
+  </text>
+  <text x="342" y="594" class="mono">CalculationResult</text>
+
+  <!-- Step 3 -->
+  <g filter="url(#shadow)">
+    <rect x="576" y="381" width="220" height="248" rx="8" fill="#e8f7f1" stroke="#2e8b72" stroke-width="2.5"/>
+  </g>
+  <rect x="592" y="397" width="56" height="26" rx="6" fill="#0f766e"/>
+  <text x="620" y="415" text-anchor="middle" class="stepNo">步骤 3</text>
+  <text x="592" y="454" class="stepTitle">固化诊断内核</text>
+  <text x="592" y="483" class="stepText">
+    <tspan x="592" dy="0">八维事实与缺口</tspan>
+    <tspan x="592" dy="23">保留项 / 纠错项</tspan>
+    <tspan x="592" dy="23">优先级与客户路由</tspan>
+    <tspan x="592" dy="23">20 理由码闭合</tspan>
+    <tspan x="592" dy="23">三份独立投影</tspan>
+  </text>
+  <text x="592" y="607" class="mono">Immutable Kernel + hash</text>
+
+  <!-- Step 5 -->
+  <g filter="url(#shadow)">
+    <rect x="826" y="395" width="220" height="220" rx="8" fill="#fff2f2" stroke="#c77a7a" stroke-width="1.5"/>
+  </g>
+  <rect x="842" y="411" width="56" height="26" rx="6" fill="#a84f55"/>
+  <text x="870" y="429" text-anchor="middle" class="stepNo">步骤 5</text>
+  <text x="842" y="468" class="stepTitle">对内报告草稿</text>
+  <text x="842" y="497" class="stepText">
+    <tspan x="842" dy="0">5.1 客户分析</tspan>
+    <tspan x="842" dy="23">5.2 解释资产</tspan>
+    <tspan x="842" dy="23">5.3 行动资产</tspan>
+    <tspan x="842" dy="23">5.4-5.6 沟通支持</tspan>
+  </text>
+  <text x="842" y="594" class="mono">InternalReportDraft</text>
+
+  <!-- Step 4 -->
+  <g filter="url(#shadow)">
+    <rect x="1076" y="395" width="220" height="220" rx="8" fill="#f5effc" stroke="#9d80be" stroke-width="1.5"/>
+  </g>
+  <rect x="1092" y="411" width="56" height="26" rx="6" fill="#77559d"/>
+  <text x="1120" y="429" text-anchor="middle" class="stepNo">步骤 4</text>
+  <text x="1092" y="468" class="stepTitle">代理人复核闸门</text>
+  <text x="1092" y="497" class="stepText">
+    <tspan x="1092" dy="0">事实与报告复核</tspan>
+    <tspan x="1092" dy="23">自然语言转 patch</tspan>
+    <tspan x="1092" dy="23">依赖失效与最小重跑</tspan>
+    <tspan x="1092" dy="23">批准 kernel revision</tspan>
+  </text>
+  <text x="1092" y="594" class="mono">Approval + kernel_hash</text>
+
+  <!-- Step 6 -->
+  <g filter="url(#shadow)">
+    <rect x="1326" y="395" width="198" height="220" rx="8" fill="#edf8f6" stroke="#69a99b" stroke-width="1.5"/>
+  </g>
+  <rect x="1342" y="411" width="56" height="26" rx="6" fill="#277f73"/>
+  <text x="1370" y="429" text-anchor="middle" class="stepNo">步骤 6</text>
+  <text x="1342" y="468" class="stepTitle">对客 HTML</text>
+  <text x="1342" y="497" class="stepText">
+    <tspan x="1342" dy="0">批准内核投影</tspan>
+    <tspan x="1342" dy="23">ViewModel 文案</tspan>
+    <tspan x="1342" dy="23">固定模板渲染</tspan>
+    <tspan x="1342" dy="23">内容与引用校验</tspan>
+  </text>
+  <text x="1342" y="594" class="mono">HTML + manifest</text>
+
+  <path d="M296 505 H314" class="flowAccent"/>
+  <path d="M546 505 H564" class="flowAccent"/>
+  <path d="M796 505 H814" class="flowAccent"/>
+  <path d="M1046 505 H1064" class="flowAccent"/>
+  <path d="M1296 505 H1314" class="flowAccent"/>
+
+  <!-- Cross-cutting Step 7 -->
+  <rect x="76" y="670" width="1448" height="100" rx="8" fill="#f1f5f3" stroke="#9cb3ad" stroke-width="1.5"/>
+  <rect x="94" y="690" width="76" height="28" rx="6" fill="#476861"/>
+  <text x="132" y="709" text-anchor="middle" class="stepNo">步骤 7</text>
+  <text x="192" y="711" class="cardTitle">跨节点 StyleContract 与合规约束</text>
+  <text x="192" y="739" class="cardText">主/复合触发调性 · 客户路由 · 禁语 · 数字与引用保真 · 能力边界 · 语义合规审核</text>
+  <path d="M186 670 V635" class="support"/>
+  <path d="M436 670 V635" class="support"/>
+  <path d="M686 670 V649" class="support"/>
+  <path d="M936 670 V635" class="support"/>
+  <path d="M1186 670 V635" class="support"/>
+  <path d="M1425 670 V635" class="support"/>
+
+  <!-- Supporting engines -->
+  <rect x="48" y="850" width="1504" height="340" rx="8" fill="#eef4f1" class="border"/>
+  <text x="70" y="885" class="section">算法支撑能力</text>
+
+  <g filter="url(#shadow)">
+    <rect x="76" y="920" width="340" height="226" rx="8" fill="#ffffff" class="border"/>
+    <rect x="446" y="920" width="340" height="226" rx="8" fill="#ffffff" class="border"/>
+    <rect x="816" y="920" width="340" height="226" rx="8" fill="#ffffff" class="border"/>
+    <rect x="1186" y="920" width="338" height="226" rx="8" fill="#ffffff" class="border"/>
+  </g>
+
+  <rect x="76" y="920" width="340" height="8" rx="4" fill="#3e6ea8"/>
+  <text x="98" y="966" class="cardTitle">领域 Tool Protocols</text>
+  <text x="98" y="997" class="cardText">
+    <tspan x="98" dy="0">customer_center_lookup</tspan>
+    <tspan x="98" dy="24">customer_profile_lookup</tspan>
+    <tspan x="98" dy="24">zhongbaoxin_report_fetch</tspan>
+    <tspan x="98" dy="24">precise_gap_calculator</tspan>
+  </text>
+  <text x="98" y="1110" class="small">Mock 与真实 Adapter 使用同一 Schema</text>
+
+  <rect x="446" y="920" width="340" height="8" rx="4" fill="#aa7420"/>
+  <text x="468" y="966" class="cardTitle">Rule Harness</text>
+  <text x="468" y="997" class="cardText">
+    <tspan x="468" dy="0">Word / Excel 源材料</tspan>
+    <tspan x="468" dy="24">canonical schema + 静态 lint</tspan>
+    <tspan x="468" dy="24">20 理由码 / 29 触发项闭合</tspan>
+    <tspan x="468" dy="24">签名 Rule Bundle 只读加载</tspan>
+  </text>
+  <text x="468" y="1110" class="small">来源可追踪 · 版本可回放 · 规则可回归</text>
+
+  <rect x="816" y="920" width="340" height="8" rx="4" fill="#a84f55"/>
+  <text x="838" y="966" class="cardTitle">Skill 与受约束 LLM</text>
+  <text x="838" y="997" class="cardText">
+    <tspan x="838" dy="0">Executable Skills：抽取与表达</tspan>
+    <tspan x="838" dy="24">Knowledge Skills：最小按需加载</tspan>
+    <tspan x="838" dy="24">Extractor / Writer / Reviewer</tspan>
+    <tspan x="838" dy="24">JSON Schema + 引用强制返回</tspan>
+  </text>
+  <text x="838" y="1110" class="small">模型不计算、不改内核、不创造事实</text>
+
+  <rect x="1186" y="920" width="338" height="8" rx="4" fill="#77559d"/>
+  <text x="1208" y="966" class="cardTitle">Deterministic Guardrails</text>
+  <text x="1208" y="997" class="cardText">
+    <tspan x="1208" dy="0">八维与 D3 语义不变量</tspan>
+    <tspan x="1208" dy="24">数字 / 理由 / 行动引用闭环</tspan>
+    <tspan x="1208" dy="24">辅助指标与能力边界</tspan>
+    <tspan x="1208" dy="24">跨投影一致性 + 合规阻断</tspan>
+  </text>
+  <text x="1208" y="1110" class="small">失败时回到责任节点，不扩大模型自由度</text>
+
+  <path d="M246 920 V830 H186 V627" class="support"/>
+  <path d="M616 920 V830 H686 V641" class="support"/>
+  <path d="M986 920 V830 H936 V627" class="support"/>
+  <path d="M1355 920 V830 H1186 V627" class="support"/>
+
+  <!-- State and quality -->
+  <rect x="48" y="1228" width="1504" height="294" rx="8" fill="#ffffff" class="border"/>
+  <text x="70" y="1263" class="section">状态、追踪与企业级质量门禁</text>
+
+  <g filter="url(#shadow)">
+    <rect x="76" y="1295" width="460" height="180" rx="8" fill="#e8f7f1" stroke="#69a996" stroke-width="1.5"/>
+    <rect x="570" y="1295" width="430" height="180" rx="8" fill="#fff8e8" stroke="#d2a84e" stroke-width="1.5"/>
+    <rect x="1034" y="1295" width="490" height="180" rx="8" fill="#f5effc" stroke="#9d80be" stroke-width="1.5"/>
+  </g>
+
+  <text x="98" y="1338" class="cardTitle">CoverageReviewState</text>
+  <text x="98" y="1370" class="cardText">
+    <tspan x="98" dy="0">Evidence → Calculation → Immutable Kernel</tspan>
+    <tspan x="98" dy="25">Projections → Reports → Review / Approval</tspan>
+    <tspan x="98" dy="25">revision + kernel_hash + approved_kernel_hash</tspan>
+  </text>
+  <text x="98" y="1450" class="small">唯一事实载体，派生物可删除重建</text>
+
+  <text x="592" y="1338" class="cardTitle">版本与可重放 Trace</text>
+  <text x="592" y="1370" class="cardText">
+    <tspan x="592" dy="0">Workflow / Rule Bundle / Prompt</tspan>
+    <tspan x="592" dy="25">Model / Skill / Capability / Template</tspan>
+    <tspan x="592" dy="25">节点输入 hash、输出 hash、错误与重试</tspan>
+  </text>
+  <text x="592" y="1450" class="small">每一份报告都可定位、解释、重放和比较</text>
+
+  <text x="1056" y="1338" class="cardTitle">Eval Harness 与发布门禁</text>
+  <text x="1056" y="1370" class="cardText">
+    <tspan x="1056" dy="0">Unit · Contract · Invariant · Golden</tspan>
+    <tspan x="1056" dy="25">Metamorphic · Adversarial · Semantic Eval</tspan>
+    <tspan x="1056" dy="25">8 维 × 20 理由码 × 29 触发项覆盖</tspan>
+  </text>
+  <text x="1056" y="1450" class="small">硬指标零回退，差异报告通过后发布</text>
+
+  <path d="M686 629 V1210 H306 V1283" class="flow"/>
+  <path d="M1186 615 V1204 H785 V1283" class="flow"/>
+  <path d="M1425 615 V1212 H1279 V1283" class="flow"/>
+
+  <text x="800" y="1564" text-anchor="middle" class="small">
+    关键原则：框架负责运行 · 工具负责事实与精算 · 规则负责判断 · 模型负责表达 · 人工负责批准
+  </text>
+</svg>

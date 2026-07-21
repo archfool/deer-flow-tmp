@@ -340,15 +340,15 @@ def test_build_run_config_context_custom_agent_injects_agent_name():
     assert config["configurable"]["agent_name"] == "finalis"
 
 
-def test_resolve_agent_factory_returns_make_lead_agent():
-    """resolve_agent_factory always returns make_lead_agent regardless of assistant_id."""
+def test_resolve_agent_factory_returns_gateway_domain_agent():
+    """Gateway 必须装配保障检视领域 Tool 与确定性路由。"""
     from app.gateway.services import resolve_agent_factory
-    from deerflow.agents.lead_agent.agent import make_lead_agent
+    from app.insurance.agent import make_gateway_lead_agent
 
-    assert resolve_agent_factory(None) is make_lead_agent
-    assert resolve_agent_factory("lead_agent") is make_lead_agent
-    assert resolve_agent_factory("finalis") is make_lead_agent
-    assert resolve_agent_factory("custom-agent-123") is make_lead_agent
+    assert resolve_agent_factory(None) is make_gateway_lead_agent
+    assert resolve_agent_factory("lead_agent") is make_gateway_lead_agent
+    assert resolve_agent_factory("finalis") is make_gateway_lead_agent
+    assert resolve_agent_factory("custom-agent-123") is make_gateway_lead_agent
 
 
 def test_build_run_config_configurable_custom_agent_dual_writes_agent_name():

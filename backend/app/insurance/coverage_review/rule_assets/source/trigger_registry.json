@@ -1,0 +1,39 @@
+{
+  "version": "trigger-v2",
+  "triggers": [
+    {"id":"A1","category":"life_event","scene":"结婚","temperature":"open","focus_dimensions":["D4","D1"],"tone":"从新身份与共同责任切入","scenario":"一方收入中断后，另一方能否维持家庭生活","guardrails":[]},
+    {"id":"A2","category":"life_event","scene":"生育（头胎）","temperature":"open","focus_dimensions":["D4","D1"],"tone":"从成为孩子长期依靠切入","scenario":"经济支柱中断后，孩子成长资金链能否延续","guardrails":["避免制造愧疚感"]},
+    {"id":"A3","category":"life_event","scene":"二胎或多孩","temperature":"open","focus_dimensions":["D4","D1"],"tone":"从家庭责任扩容和原额度过时切入","scenario":"现有安排能否同时承接多个子女的生活责任","guardrails":[]},
+    {"id":"A4","category":"life_event","scene":"购房或背房贷","temperature":"neutral","focus_dimensions":["D4"],"tone":"从债务转移和家庭住房稳定切入","scenario":"贷款未清时支柱身故，家庭是否被迫处置住房","guardrails":[]},
+    {"id":"A5","category":"life_event","scene":"换工作或收入跃迁","temperature":"open","focus_dimensions":["D4","B1","A1"],"tone":"从收入台阶与保障地基同步升级切入","scenario":"旧额度能否维持新的家庭生活水平","guardrails":[]},
+    {"id":"A6","category":"life_event","scene":"创业或成为企业主","temperature":"neutral","focus_dimensions":["D4","C1"],"tone":"从企业与家庭风险隔离切入","scenario":"经营风险是否会波及家庭资产与生活","guardrails":["按高客或企业主叙事","慎言收益"]},
+    {"id":"A7","category":"life_event","scene":"子女成年或离巢","temperature":"neutral","focus_dimensions":["B1","D2"],"tone":"从家庭责任重心转回自身后半程切入","scenario":"退休后的医疗与养老现金流是否充足","guardrails":[]},
+    {"id":"A8","category":"life_event","scene":"临近退休","temperature":"neutral","focus_dimensions":["B1","D2"],"auxiliary_focus":true,"tone":"从工资停止后的现金流断点切入","scenario":"退休后日常和医疗现金流能否持续","guardrails":[]},
+    {"id":"A9","category":"life_event","scene":"父母年迈或开始赡养","temperature":"neutral","focus_dimensions":["D4","D2"],"auxiliary_focus":true,"tone":"从夹心层对两代人的责任切入","scenario":"支柱风险同时影响赡养和抚养责任","guardrails":[]},
+
+    {"id":"B1","category":"risk_awareness","scene":"身边人确诊重疾","temperature":"fear","focus_dimensions":["D1","D2"],"tone":"先接情绪，再确认现有安排是否够","scenario":"确诊后的治疗支出和收入中断能维持多久","guardrails":["禁止开场甩缺口","禁止把他人不幸当卖点","情绪激动时仅确认现有保障"]},
+    {"id":"B2","category":"risk_awareness","scene":"身边人身故或意外","temperature":"fear","focus_dimensions":["D4","D3"],"tone":"强共情并把主动权交给客户","scenario":"支柱离世后家庭现金流与债务如何承接","guardrails":["禁止借势推销","禁止开场出现数字或产品","允许延后检视"]},
+    {"id":"B3","category":"risk_awareness","scene":"自身体检异常或小病","temperature":"fear","focus_dimensions":["D2","D1"],"tone":"先安抚，再客观说明可保性窗口","scenario":"健康变化后未来投保条件可能受到什么影响","guardrails":["不夸大病情","禁止来不及了式表达"]},
+    {"id":"B4","category":"risk_awareness","scene":"大额医疗自费经历","temperature":"neutral","focus_dimensions":["D2"],"tone":"从客户已经体验过的真实自费敞口切入","scenario":"再次发生大额医疗支出时对家庭现金流的冲击","guardrails":["只使用客户真实经历"]},
+    {"id":"B5","category":"risk_awareness","scene":"行业裁员或收入不确定","temperature":"defensive","focus_dimensions":["D4"],"auxiliary_focus":true,"tone":"先降压，不谈增加负担，先盘现金流","scenario":"收入中断后流动资产可以维持多少个月","guardrails":["禁止在防御情绪下推动加保","优先讨论不增加负担的方向"]},
+
+    {"id":"C1","category":"active_planning","scene":"主动问养老","temperature":"open","focus_dimensions":["B1","A1"],"tone":"接住客户已有思考并直接算现金流","scenario":"目标退休生活与已有现金流的差额","guardrails":["不要从零重讲保险原理"]},
+    {"id":"C2","category":"active_planning","scene":"主动问教育金","temperature":"open","focus_dimensions":["D4"],"tone":"区分资金积累和家长风险中断","scenario":"家长中途发生风险时教育计划能否继续","guardrails":[]},
+    {"id":"C3","category":"active_planning","scene":"主动问传承或资产","temperature":"neutral","focus_dimensions":["C1","A1","D2"],"tone":"从控制权、确定性和结构切入","scenario":"缺少安排时资产能否按意愿顺利传递","guardrails":["走高客线","慎言收益"]},
+    {"id":"C4","category":"active_planning","scene":"获得年终奖或一笔闲钱","temperature":"open","focus_dimensions":["D1","D2","D3","D5","D4","A1","B1","C1"],"tone":"先降温配置冲动，再按缺口优先级判断","scenario":"当前最紧迫的风险敞口是什么","guardrails":["先诊断后配置"]},
+    {"id":"C5","category":"active_planning","scene":"拿他人方案来对比","temperature":"neutral","focus_dimensions":["D1","D2","D3","D5","D4","A1","B1","C1"],"tone":"把比较产品转回比较自身需求","scenario":"照搬他人方案会遗漏哪些个人风险","guardrails":["不比较具体产品"]},
+    {"id":"C6","category":"active_planning","scene":"主动问健康或重疾保障","temperature":"open","focus_dimensions":["D1","D2"],"tone":"接住主动性，说明治疗与收入中断两层","scenario":"确诊后治疗支出和收入中断能维持多久","guardrails":["不要把主动客户当白纸"]},
+
+    {"id":"D1","category":"service_relationship","scene":"孤儿单开拓","temperature":"cold_start","focus_dimensions":["D1","D2","D3","D5","D4","A1","B1","C1"],"tone":"先补上服务缺口，再谈保障需求","scenario":"生活变化后旧安排是否仍匹配","guardrails":["开场不出现产品或加保","不贬低前任代理人"]},
+    {"id":"D2","category":"service_relationship","scene":"年度例检","temperature":"cold_start","focus_dimensions":["D1","D2","D3","D5","D4","A1","B1","C1"],"tone":"像年度体检一样核对家庭变化","scenario":"过去一年变化是否形成新的保障缺口","guardrails":[]},
+    {"id":"D3","category":"service_relationship","scene":"保单周年或生日","temperature":"neutral","focus_dimensions":["D1","D2","D3","D5","D4"],"tone":"以关怀为主，轻量检视为辅","scenario":"近一年是否有新增责任未覆盖","guardrails":["不施压"]},
+    {"id":"D4","category":"service_relationship","scene":"转介绍新客","temperature":"cold_start","focus_dimensions":["D1","D2","D3","D5","D4","A1","B1","C1"],"tone":"借介绍人的信任，先提供检查价值","scenario":"现有保障结构是否有明显空白","guardrails":["先给价值再谈需求"]},
+    {"id":"D5","category":"service_relationship","scene":"加保后复检或理赔后","temperature":"neutral","focus_dimensions":["D1","D2","D3","D5","D4"],"tone":"查漏补缺并确认变动后仍自洽","scenario":"本次变动后整体保障是否仍然完整","guardrails":["不再次加压"]},
+
+    {"id":"E1","category":"external_environment","scene":"政策变化","temperature":"neutral","focus_dimensions":["B1","A1"],"tone":"据实说明政策窗口是否适用","scenario":"政策变化对长期安排的影响","guardrails":["不得夸大利好"]},
+    {"id":"E2","category":"external_environment","scene":"产品停售或迭代","temperature":"neutral","focus_dimensions":["D1","D2","D3","D5","D4"],"tone":"强降调，只说明客观变化","scenario":"保障形态变化后获取同类责任的条件变化","guardrails":["禁止最后机会式话术","系统不主动发起","不得收益承诺"]},
+    {"id":"E3","category":"external_environment","scene":"利率下行","temperature":"neutral","focus_dimensions":["B1","A1"],"tone":"讲长期确定性，不讲收益承诺","scenario":"长期资金的确定性安排是否充分","guardrails":["禁止收益率承诺"]},
+    {"id":"E4","category":"external_environment","scene":"医疗费用或通胀上涨","temperature":"neutral","focus_dimensions":["D2","D1"],"tone":"从旧额度与当前医疗成本的变化切入","scenario":"现有责任在当前医疗成本下的自费敞口","guardrails":[]}
+  ]
+}
+

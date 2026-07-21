@@ -35,6 +35,14 @@ class IncomeStability(StrEnum):
     BUSINESS_OWNER = "business_owner"
 
 
+class InvestmentRiskTolerance(StrEnum):
+    """保障检视精确测算 Tool 接受的投资偏好。"""
+
+    CONSERVATIVE = "保守型"
+    BALANCED = "稳健型"
+    AGGRESSIVE = "激进型"
+
+
 class HealthcarePreference(StrEnum):
     PUBLIC = "public"
     PRIVATE = "private"
@@ -123,6 +131,8 @@ class ParentSupportPlan(BaseModel):
 class FinancialProfile(BaseModel):
     currency: str = Field(default="CNY", min_length=3, max_length=3)
     annual_income: Decimal | None = Field(default=None, ge=0)
+    primary_annual_income: Decimal | None = Field(default=None, ge=0)
+    spouse_annual_income: Decimal | None = Field(default=None, ge=0)
     monthly_expenses: Decimal | None = Field(default=None, ge=0)
     # `None` 表示未知，`[]` 表示已经明确确认没有负债。
     liabilities: list[Liability] | None = None
@@ -130,6 +140,7 @@ class FinancialProfile(BaseModel):
     non_liquid_assets: Decimal | None = Field(default=None, ge=0)
     annual_premium_budget: Decimal | None = Field(default=None, ge=0)
     income_stability: IncomeStability | None = None
+    investment_risk_tolerance: InvestmentRiskTolerance | None = None
     income_structure: str | None = None
 
 

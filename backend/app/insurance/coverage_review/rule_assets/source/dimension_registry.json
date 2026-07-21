@@ -1,0 +1,20 @@
+{
+  "version": "dimension-v2.1",
+  "dimensions": [
+    {"code": "D1", "name": "疾病保障", "group": "健康保障", "measurement_type": "amount_ratio", "default_reason_code": "CRITICAL_ILLNESS_GAP", "risk_exposure": 3},
+    {"code": "D2", "name": "医疗保障", "group": "健康保障", "measurement_type": "liability_tier", "default_reason_code": "MEDICAL_LIABILITY_GAP", "risk_exposure": 2},
+    {"code": "D3", "name": "伤残保障", "group": "健康保障", "measurement_type": "amount_ratio", "default_reason_code": "DISABILITY_GAP", "risk_exposure": 2},
+    {"code": "D5", "name": "护理保障", "group": "健康保障", "measurement_type": "amount_ratio", "default_reason_code": "LONGTERM_CARE_GAP", "risk_exposure": 2},
+    {"code": "D4", "name": "身故保障", "group": "健康保障", "measurement_type": "amount_ratio", "default_reason_code": "INCOME_REPLACE_GAP", "risk_exposure": 1},
+    {"code": "A1", "name": "财富管理", "group": "财富保障", "measurement_type": "amount_ratio", "default_reason_code": "WEALTH_MGMT_GAP", "risk_exposure": 1},
+    {"code": "B1", "name": "养老储蓄", "group": "养老保障", "measurement_type": "cashflow_ratio", "default_reason_code": "RETIRE_CASHFLOW_GAP", "risk_exposure": 2},
+    {"code": "C1", "name": "传承储备", "group": "传承保障", "measurement_type": "amount_ratio", "default_reason_code": "LEGACY_ARRANGE_GAP", "risk_exposure": 1}
+  ],
+  "source_migrations": {
+    "D3:意外保障": "REQUIRE:disability-semantic-version",
+    "B1:传承储备": "C1:传承储备"
+  },
+  "auxiliary_metrics": [
+    {"code": "EMERGENCY_LIQUIDITY_ALERT", "name": "应急流动性提醒", "dimension": false}
+  ]
+}

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
+from app.insurance.intake import CoverageReviewIntake, customer_id_for_name
 from app.insurance.models import (
     CustomerProfile,
     EducationPlan,
@@ -14,12 +15,57 @@ from app.insurance.models import (
     HealthcarePreference,
     IncomeStability,
     InsurancePolicy,
+    InvestmentRiskTolerance,
     Liability,
     MedicalResponsibility,
     PolicyCategory,
     PolicyStatus,
     Relationship,
 )
+
+REGISTERED_MOCK_CUSTOMER_NAME = "演示甲"
+
+
+def hydrate_registered_mock_intake(
+    intake: CoverageReviewIntake,
+) -> CoverageReviewIntake:
+    """为已登记的本地 Mock 客户补齐客户中心身份字段。
+
+    Args:
+        intake: 从对话或表单解析得到的保障检视入口数据。
+
+    Returns:
+        命中 ``演示甲`` 时补齐年龄、性别和职业，否则原样返回。
+    """
+
+    if (intake.customer_name or "").strip() != REGISTERED_MOCK_CUSTOMER_NAME:
+        return intake
+    return intake.model_copy(
+        update={
+            "age": intake.age if intake.age is not None else 40,
+            "gender": intake.gender or Gender.MALE,
+            "occupation": intake.occupation or "企业管理",
+            "marital_status": intake.marital_status or "married",
+        }
+    )
+
+
+def build_registered_mock_profile(customer_name: str | None) -> CustomerProfile | None:
+    """按姓名返回可供聊天入口查询的完整合成客户档案。
+
+    Args:
+        customer_name: 代理人请求检视的客户姓名。
+
+    Returns:
+        ``演示甲`` 对应的完整档案；其他姓名返回 ``None``。
+    """
+
+    normalized_name = (customer_name or "").strip()
+    if normalized_name != REGISTERED_MOCK_CUSTOMER_NAME:
+        return None
+    profile = build_complete_mock_profile()
+    profile.customer_id = customer_id_for_name(normalized_name)
+    return profile
 
 
 def build_complete_mock_profile() -> CustomerProfile:
@@ -84,12 +130,15 @@ def build_complete_mock_profile() -> CustomerProfile:
         ],
         financial=FinancialProfile(
             annual_income=Decimal("600000"),
+            primary_annual_income=Decimal("450000"),
+            spouse_annual_income=Decimal("150000"),
             monthly_expenses=Decimal("25000"),
             liabilities=[Liability(id="mortgage", kind="房贷", balance=Decimal("1800000"))],
             liquid_assets=Decimal("500000"),
             non_liquid_assets=Decimal("3500000"),
             annual_premium_budget=Decimal("80000"),
             income_stability=IncomeStability.STABLE,
+            investment_risk_tolerance=InvestmentRiskTolerance.BALANCED,
         ),
         policies=[
             InsurancePolicy(

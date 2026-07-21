@@ -8,6 +8,7 @@ from typing import Any
 
 from deerflow.workflows.models import (
     SkillExecutionContext,
+    StepExecution,
     StepStatus,
     TaskInstance,
     TaskStatus,
@@ -143,11 +144,25 @@ class WorkflowEngine:
         input_patch: dict[str, Any] | None = None,
         confirmations: dict[str, bool] | None = None,
         max_waves: int = 32,
+        time_budget_seconds: float | None = None,
+        recover_interrupted: bool = False,
     ) -> TaskInstance:
         """推进当前所有可达步骤，直到遇到稳定屏障。
 
         虽然 `TaskDefinition` 已拒绝静态循环，但 `max_waves` 仍可防止错误的
         动态注册工作流无限占用一个对话轮次。
+
+        Args:
+            task_id: 待推进的任务 ID。
+            owner_id: 已认证的任务所有者 ID。
+            input_patch: 本轮新增或修订的任务输入。
+            confirmations: 步骤 ID 到人工确认结果的映射。
+            max_waves: 单次调用最多执行的 DAG 波次数。
+            time_budget_seconds: 单次调用的软时间预算；当前波完成后停止。
+            recover_interrupted: 是否把上次中断遗留的 RUNNING 步骤恢复为待执行。
+
+        Returns:
+            已持久化到稳定屏障或时间预算边界的任务实例。
         """
 
         task = await self._load_required(task_id, owner_id)
@@ -155,6 +170,14 @@ class WorkflowEngine:
             return task
         if task.status is TaskStatus.SUSPENDED:
             raise WorkflowStateError("suspended task must be resumed before it can advance")
+
+        if recover_interrupted:
+            for state in task.steps.values():
+                if state.status is StepStatus.RUNNING:
+                    state.status = StepStatus.PENDING
+                    state.updated_at = utc_now()
+            task.status = TaskStatus.READY
+            task.error = None
 
         if input_patch:
             task.input_data = _deep_merge(task.input_data, input_patch)
@@ -183,6 +206,7 @@ class WorkflowEngine:
         task = await self._save(task)
         definition = self._definitions.get(task.task_name, task.definition_version)
         attempted: set[str] = set()
+        started_at = asyncio.get_running_loop().time()
 
         for _wave in range(max_waves):
             ready = self._ready_steps(task, definition, attempted)
@@ -209,18 +233,36 @@ class WorkflowEngine:
             # 调用外部代码前先持久化 RUNNING。即使进程崩溃，也会留下可观察状态，
             # 后续恢复任务可以进行对账，而不是误认为步骤从未开始。
             task = await self._save(task)
-            results = await asyncio.gather(
-                *(self._skills.invoke(context) for context in contexts),
-                return_exceptions=True,
-            )
+            try:
+                results = await asyncio.gather(
+                    *(self._skills.invoke(context) for context in contexts),
+                    return_exceptions=True,
+                )
+            except asyncio.CancelledError:
+                # 客户端断开不应留下永久 RUNNING；下次推进会安全重试当前波。
+                for step in ready:
+                    state = task.steps[step.id]
+                    if state.status is StepStatus.RUNNING:
+                        state.status = StepStatus.PENDING
+                        state.updated_at = utc_now()
+                self._refresh_summary_status(task)
+                await self._save(task)
+                raise
 
             for step, result in zip(ready, results, strict=True):
                 state = task.steps[step.id]
                 state.updated_at = utc_now()
                 if isinstance(result, BaseException):
-                    state.status = StepStatus.FAILED
                     state.error = f"{type(result).__name__}: {result}"
-                    task.error = f"step {step.id} failed: {result}"
+                    skill_definition, _handler = self._skills.get(
+                        step.skill,
+                        step.skill_version,
+                    )
+                    if state.attempts < skill_definition.max_attempts:
+                        state.status = StepStatus.PENDING
+                    else:
+                        state.status = StepStatus.FAILED
+                        task.error = f"step {step.id} failed: {result}"
                     continue
 
                 state.output = deepcopy(result.output)
@@ -241,8 +283,126 @@ class WorkflowEngine:
             task = await self._save(task)
             if task.status in {TaskStatus.WAITING_CONFIRMATION, TaskStatus.FAILED, TaskStatus.COMPLETED}:
                 break
+            if time_budget_seconds is not None and asyncio.get_running_loop().time() - started_at >= time_budget_seconds:
+                break
 
         self._refresh_summary_status(task)
+        return await self._save(task)
+
+    async def retry_failed_steps(
+        self,
+        task_id: str,
+        *,
+        owner_id: str,
+        step_ids: set[str],
+    ) -> TaskInstance:
+        """重置明确允许重试的失败步骤及其下游派生物。
+
+        Args:
+            task_id: 需要恢复的任务 ID。
+            owner_id: 任务所有者 ID。
+            step_ids: 调用方已判定可安全重试的失败步骤。
+
+        Returns:
+            已恢复为 READY 的任务实例。
+
+        Raises:
+            KeyError: 任务或步骤不存在时抛出。
+            WorkflowStateError: 任务不是失败状态或步骤并未失败时抛出。
+        """
+
+        task = await self._load_required(task_id, owner_id)
+        if task.status is not TaskStatus.FAILED:
+            raise WorkflowStateError("only failed tasks can retry failed steps")
+        definition = self._definitions.get(
+            task.task_name,
+            task.definition_version,
+        )
+        known = {step.id for step in definition.steps}
+        unknown = step_ids - known
+        if unknown:
+            raise KeyError(f"unknown workflow steps: {sorted(unknown)}")
+        not_failed = {step_id for step_id in step_ids if task.steps[step_id].status is not StepStatus.FAILED}
+        if not_failed:
+            raise WorkflowStateError(f"steps are not failed: {sorted(not_failed)}")
+
+        reset_ids = set(step_ids)
+        changed = True
+        while changed:
+            changed = False
+            for step in definition.steps:
+                if step.id in reset_ids:
+                    continue
+                if reset_ids.intersection(step.depends_on):
+                    reset_ids.add(step.id)
+                    changed = True
+
+        for step_id in reset_ids:
+            task.steps[step_id] = StepExecution()
+            task.output_data.pop(step_id, None)
+        task.status = TaskStatus.READY
+        task.pending_inputs = ()
+        task.error = None
+        task.suspension_reason = None
+        return await self._save(task)
+
+    async def invalidate_steps(
+        self,
+        task_id: str,
+        *,
+        owner_id: str,
+        step_ids: set[str],
+        input_patch: dict[str, Any] | None = None,
+    ) -> TaskInstance:
+        """使指定步骤及其所有下游派生物失效。
+
+        该能力用于人工复核后的最小重跑。调用方只提交事实发生变化的首个
+        责任步骤，Engine 根据 DAG 自动扩展下游集合，避免领域代码遗漏已
+        失效的报告或审批节点。
+
+        Args:
+            task_id: 需要重跑的任务 ID。
+            owner_id: 任务所有者 ID。
+            step_ids: 首批需要失效的步骤 ID。
+            input_patch: 与失效操作一并提交的新输入。
+
+        Returns:
+            已保存并恢复为 READY 的任务实例。
+
+        Raises:
+            KeyError: 任务或步骤不存在时抛出。
+            WorkflowStateError: 任务已取消或失败时抛出。
+        """
+
+        task = await self._load_required(task_id, owner_id)
+        if task.status in {TaskStatus.CANCELLED, TaskStatus.FAILED}:
+            raise WorkflowStateError("cancelled or failed task cannot be invalidated")
+        definition = self._definitions.get(task.task_name, task.definition_version)
+        known = {step.id for step in definition.steps}
+        unknown = step_ids - known
+        if unknown:
+            raise KeyError(f"unknown workflow steps: {sorted(unknown)}")
+
+        invalidated = set(step_ids)
+        changed = True
+        while changed:
+            changed = False
+            for step in definition.steps:
+                if step.id in invalidated:
+                    continue
+                if invalidated.intersection(step.depends_on):
+                    invalidated.add(step.id)
+                    changed = True
+
+        for step_id in invalidated:
+            task.steps[step_id] = StepExecution()
+            task.output_data.pop(step_id, None)
+        if input_patch:
+            task.input_data = _deep_merge(task.input_data, input_patch)
+        task.status = TaskStatus.READY
+        task.pending_inputs = ()
+        task.error = None
+        task.suspension_reason = None
         return await self._save(task)
 
     async def suspend(self, task_id: str, *, owner_id: str, reason: str = "") -> TaskInstance:

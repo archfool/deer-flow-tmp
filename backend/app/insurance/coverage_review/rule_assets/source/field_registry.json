@@ -1,0 +1,30 @@
+{
+  "version": "field-v2.1",
+  "blocking_max_rounds": 1,
+  "max_fields_per_round": 16,
+  "fields": [
+    {"key": "annual_income_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于精确测算个人收入责任", "prompt": "请确认客户个人年收入，单位为万元/年。"},
+    {"key": "spouse_annual_income_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于家庭收入与身故责任测算；无配偶填 0", "prompt": "请确认配偶年收入，单位为万元/年；无配偶请填 0。"},
+    {"key": "family_expense_yuan_month", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于家庭现金流和精确测算", "prompt": "请确认家庭月支出，单位为元/月。"},
+    {"key": "large_loan_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于债务责任测算；无大额贷款填 0", "prompt": "请确认房贷、经营贷等大额贷款余额，单位为万元；没有请填 0。"},
+    {"key": "existing_disease_coverage_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于疾病保障现有值与保留项判断；没有请填 0", "prompt": "请确认现有疾病/重疾保障保额，单位为万元；没有请填 0。"},
+    {"key": "existing_medical_responsibility_tier", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于判断商业医疗责任是否已覆盖", "prompt": "请选择客户当前商业医疗责任覆盖情况。"},
+    {"key": "existing_disability_coverage_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于伤残保障现有值与保留项判断；没有请填 0", "prompt": "请确认现有伤残保障保额，单位为万元；没有请填 0。"},
+    {"key": "existing_care_coverage_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于护理保障现有值判断；没有请填 0", "prompt": "请确认现有长期护理保障额度，单位为万元；没有请填 0。"},
+    {"key": "existing_death_coverage_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于身故责任现有值与保留项判断；没有请填 0", "prompt": "请确认现有身故保障保额，单位为万元；没有请填 0。"},
+    {"key": "existing_wealth_reserve_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于财富管理方向的现有长期储备判断；没有请填 0", "prompt": "请确认可计入本次检视的长期财富储备，单位为万元；没有请填 0。"},
+    {"key": "existing_retirement_cashflow_yuan_year", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于养老年度现金流缺口判断；没有请填 0", "prompt": "请确认现有商业养老年度现金流，单位为元/年；没有请填 0。"},
+    {"key": "existing_legacy_reserve_wan", "priority": "P0", "blocking": true, "sensitive": true, "reason": "用于传承储备现有值判断；没有请填 0", "prompt": "请确认现有传承储备额度，单位为万元；没有请填 0。"},
+    {"key": "investment_risk_tolerance", "priority": "P0", "blocking": true, "sensitive": false, "reason": "用于财富与养老测算取向", "prompt": "请确认投资偏好：保守型、稳健型或激进型。"},
+    {"key": "trigger_ids", "priority": "P0", "blocking": true, "sensitive": false, "reason": "决定本次检视的重心与情绪护栏", "prompt": "请选择本次检视触发场景编号，可多选。"},
+    {"key": "review_scope", "priority": "P0", "blocking": true, "sensitive": false, "reason": "决定检视对象范围", "prompt": "请确认检视范围：个人、某位成员或全家。"},
+    {"key": "annual_premium_budget_yuan", "priority": "P1", "blocking": false, "sensitive": true, "reason": "用于5.3阶段取舍；不用于倒推保额或产品组合", "prompt": "如客户已明确年度保费预算，可补充预算金额（元/年）。"},
+    {"key": "customer_goal", "priority": "P1", "blocking": false, "sensitive": false, "reason": "提升客户分析和会谈方案", "prompt": "建议面谈中确认客户当前最想解决的目标。"},
+    {"key": "recent_concern", "priority": "P1", "blocking": false, "sensitive": true, "reason": "选择最相关的情境模拟", "prompt": "建议面谈中确认客户最近最担忧的风险。"},
+    {"key": "risk_attitude", "priority": "P2", "blocking": false, "sensitive": false, "reason": "优化表达节奏", "prompt": "可在面谈中观察客户的风险态度。"}
+  ],
+  "approved_defaults": {
+    "investment_risk_tolerance": {"value": "稳健型", "assumption": true},
+    "review_scope": {"value": "个人", "assumption": true}
+  }
+}

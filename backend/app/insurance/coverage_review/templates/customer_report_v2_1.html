@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$report_title</title>
+  <style>$stylesheet</style>
+</head>
+<body>
+  <header class="cover">
+    <div class="cover-inner">
+      <p class="eyebrow">家 庭 保 障 体 检 报 告</p>
+      <h1>致$customer_name的一份家庭保障体检</h1>
+      <p class="cover-summary">看现状、看缺口、看为什么，决定权始终在你。</p>
+      <p class="meta">体检日期：$generated_at　·　由您的专属顾问整理</p>
+    </div>
+  </header>
+
+  <main class="report">
+    <section class="opening">
+      <p class="salutation">$salutation</p>
+      $opening_paragraphs
+    </section>
+
+    <section>
+      <h2><span class="section-number">01</span>你的家庭</h2>
+      <div class="family-grid">$family_cards</div>
+      <p class="family-summary">$family_summary</p>
+      <h3 class="subsection-title">家庭财务摘要</h3>
+      <div class="financial-grid">$financial_snapshot</div>
+      <div class="auxiliary-box">
+        <strong>辅助财务观察</strong>
+        <ul>$auxiliary_observations</ul>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="section-number">02</span>一句话现状</h2>
+      <div class="status-summary">$status_summary</div>
+    </section>
+
+    <section>
+      <h2><span class="section-number">03</span>八维保障体检</h2>
+      <p class="section-intro">从疾病、医疗、伤残、护理、身故、财富管理、养老储蓄和传承储备八个方向，看清现在、目标和缺口。</p>
+      <div class="dimension-list">$dimension_cards</div>
+    </section>
+
+    <section>
+      <h2><span class="section-number">04</span>先补哪个？一张行动路线图</h2>
+      <p class="section-intro">$roadmap_intro</p>
+      <ol class="roadmap">$priority_actions</ol>
+      $budget_tradeoff
+      <p class="handoff">$handoff_statement</p>
+    </section>
+
+    <section>
+      <h2><span class="section-number">05</span>建议维持的安排</h2>
+      <p class="section-intro">$preserve_intro</p>
+      <ul class="preserve-list">$preserve_items</ul>
+    </section>
+
+    <section>
+      <h2><span class="section-number">06</span>情境推演</h2>
+      <p class="section-intro">以已确认的家庭事实为锚点，看这些保障方向在真实生活中意味着什么。</p>
+      <div class="scenario-list">$scenario_blocks</div>
+    </section>
+
+    <section>
+      <h2><span class="section-number">07</span>未来检视安排</h2>
+      <p class="section-intro">保障规划不是一次完成的清单，而是随着家庭责任和现金流变化持续复核的安排。</p>
+      <div class="future-grid">$future_outlook</div>
+    </section>
+
+    <section class="closing">
+      $closing_paragraphs
+    </section>
+
+    <section class="assumptions">
+      <h2>本次体检的假设与边界</h2>
+      <ul>$assumptions</ul>
+    </section>
+
+    <p class="disclaimer">$disclaimer</p>
+  </main>
+</body>
+</html>

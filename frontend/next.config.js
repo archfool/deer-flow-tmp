@@ -25,6 +25,11 @@ const config = {
     defaultLocale: "en",
   },
   devIndicators: false,
+  experimental: {
+    // Coverage-review workflow waves can include constrained model calls.
+    // Keep the gateway proxy alive long enough for the persisted result to return.
+    proxyTimeout: 120_000,
+  },
   async rewrites() {
     const rewrites = [];
     const gatewayURL = getInternalServiceURL(

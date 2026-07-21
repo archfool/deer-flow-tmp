@@ -1,0 +1,46 @@
+version: knowledge-registry-v2.1
+skills:
+  - skill_id: family-insurance-quickstart
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support, customer-analysis, customer-copy]
+    topics: [family_risk, lifecycle, consultative]
+  - skill_id: insurance-precision-marketing
+    version: "2026-07-14"
+    allowed_nodes: [customer-analysis, meeting-support]
+    topics: [kyc, segmentation, consultative]
+  - skill_id: professional-insurance-sales
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support, customer-copy]
+    topics: [consultative, proposal]
+  - skill_id: insurance-sales-scenarios
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support]
+    topics: [meeting, scenario]
+  - skill_id: insurance-sales-playbook
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support]
+    topics: [meeting, process]
+  - skill_id: insurance-sales-objection-handling
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support]
+    topics: [objection, communication]
+  - skill_id: big-policy-sales
+    version: "2026-07-14"
+    allowed_nodes: [customer-analysis, meeting-support]
+    topics: [hnw, structure]
+  - skill_id: large-policy-practical-guide
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support]
+    topics: [hnw, structure]
+  - skill_id: large-policy-family-law
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support]
+    topics: [legacy, family_boundary]
+  - skill_id: large-policy-closing
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support]
+    topics: [legacy, communication]
+  - skill_id: insurance-contract-compliance
+    version: "2026-07-14"
+    allowed_nodes: [meeting-support, customer-copy, customer-view-model]
+    topics: [contract_boundary, communication]

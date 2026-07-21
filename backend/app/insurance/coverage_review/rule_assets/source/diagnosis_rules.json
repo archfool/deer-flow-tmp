@@ -1,0 +1,47 @@
+{
+  "version": "diagnosis-v2.1",
+  "severity_thresholds": {
+    "sufficient_upper_exclusive": 0.10,
+    "mild_upper_exclusive": 0.40,
+    "significant_upper_inclusive": 0.70
+  },
+  "severity_weights": {
+    "sufficient": 0,
+    "mild_gap": 1,
+    "significant_gap": 2,
+    "severe_gap": 3,
+    "no_need": 0,
+    "unknown": 0
+  },
+  "trigger_weights": {
+    "direct": 2,
+    "none": 0
+  },
+  "conditional_exposure": {
+    "D4_with_dependants": 3,
+    "D4_without_dependants": 1
+  },
+  "no_need_rules": {
+    "D5": {"max_age_exclusive": 50, "allowed_for_high_net_worth": true},
+    "C1": {"requires_high_net_worth_or_business_owner": true}
+  },
+  "route_rules": {
+    "high_net_worth_wealth_levels": ["高净值", "超高净值"],
+    "middle_wealth_levels": ["成熟中产"],
+    "business_owner_trigger": "A6",
+    "legacy_trigger": "C3"
+  },
+  "capabilities": {
+    "dimension_level": true,
+    "member_level": true,
+    "policy_level": false,
+    "policy_terms": false,
+    "beneficiary_review": false
+  },
+  "legacy_reason_migrations": {
+    "ACCIDENT_GAP": "DISABILITY_GAP",
+    "EMERGENCY_LIQUIDITY_GAP": "EMERGENCY_LIQUIDITY_ALERT",
+    "RES_MISALLOC": "STRUCTURE_MISALLOC"
+  }
+}
+

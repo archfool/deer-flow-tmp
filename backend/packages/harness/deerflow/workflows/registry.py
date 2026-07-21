@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 from collections.abc import Awaitable, Callable, Iterable
 
@@ -13,6 +14,38 @@ from deerflow.workflows.models import (
 )
 
 SkillHandler = Callable[[SkillExecutionContext], Awaitable[SkillExecutionResult] | SkillExecutionResult]
+
+
+def _validate_output_contract(
+    definition: SkillDefinition,
+    output: dict,
+) -> None:
+    """执行工作流 Skill 顶层输出契约校验。
+
+    领域 Handler 负责用 Pydantic 校验嵌套对象；工作流注册表在统一边界校验
+    顶层字段白名单和必填键，避免声明的 JSON Schema 只停留在文档层。
+
+    Args:
+        definition: 当前版本化 Skill 契约。
+        output: Handler 返回的结构化输出。
+
+    Raises:
+        ValueError: 输出包含未声明字段或缺少必填字段时抛出。
+    """
+
+    schema = definition.output_schema
+    if schema.get("type") != "object":
+        return
+    properties = schema.get("properties")
+    if isinstance(properties, dict) and schema.get("additionalProperties") is False:
+        unknown = set(output) - set(properties)
+        if unknown:
+            raise ValueError(f"skill {definition.name}@{definition.version} returned undeclared output keys: {sorted(unknown)}")
+    required = schema.get("required")
+    if isinstance(required, list):
+        missing = set(required) - set(output)
+        if missing:
+            raise ValueError(f"skill {definition.name}@{definition.version} missed required output keys: {sorted(missing)}")
 
 
 class DefinitionRegistry:
@@ -61,7 +94,9 @@ class SkillRegistry:
         definition, handler = self.get(context.step.skill, context.step.skill_version)
         value = handler(context)
         if inspect.isawaitable(value):
-            value = await value
+            async with asyncio.timeout(definition.timeout_seconds):
+                value = await value
         if not isinstance(value, SkillExecutionResult):
             raise TypeError(f"skill {definition.name}@{definition.version} returned {type(value).__name__}, expected SkillExecutionResult")
+        _validate_output_contract(definition, value.output)
         return value

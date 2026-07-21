@@ -58,7 +58,7 @@ deer-flow/
 │   │   │   ├── app.py         # FastAPI application
 │   │   │   └── routers/       # FastAPI route modules (models, mcp, memory, skills, uploads, threads, artifacts, agents, suggestions, channels)
 │   │   ├── channels/          # IM platform integrations
-│   │   └── insurance/         # Insurance customer profile + DRAFT coverage-review vertical
+│   │   └── insurance/         # Insurance customer profile + enterprise coverage-review vertical
 │   ├── tests/                 # Test suite
 │   └── docs/                  # Documentation
 ├── frontend/                   # Next.js frontend application
@@ -157,6 +157,14 @@ Boundary check (harness → app import firewall):
 CI runs these regression tests for every pull request via [.github/workflows/backend-unit-tests.yml](../.github/workflows/backend-unit-tests.yml).
 
 ## Architecture
+
+### Insurance Coverage Review Vertical
+
+`app/insurance/coverage_review/` implements the enterprise coverage-review algorithm as a versioned DeerFlow durable workflow. Its canonical runtime is fixed to eight dimensions (`D1`, `D2`, `D3`, `D5`, `D4`, `A1`, `B1`, `C1`); `D3` means disability, while emergency liquidity remains an auxiliary financial metric. Canonical JSON rule sources compile into a hash-signed bundle and enforce 8 dimensions, 20 reason codes, and 29 trigger scenarios before startup.
+
+The precise-calculation Tool is the only source of gap numbers. The immutable diagnosis kernel is projected independently into step 3.1 facts, step 5.2 explanations, and step 5.3 closed actions, followed by a mechanical consistency gate. Structured Narrative Harness nodes verbalize those locked assets; model output must preserve dimensions, actions, and fact references, and must fall back to rule-bound copy when post-validation fails. An internal report and explicit agent confirmation always precede customer-copy, ViewModel, and fixed-template HTML generation. Fact revisions invalidate the kernel and downstream nodes; narrative-only revisions invalidate language/report nodes without recalculation. Agent-facing review payloads use a narrow projection and never expose reason codes, framework codes, or the internal audit manifest. Keep domain rules in `app`, and keep generic invalidation/recovery behavior in `deerflow.workflows`.
+
+Run the mock-backed vertical from `backend/` with `PYTHONPATH=.:packages/harness python scripts/run_coverage_review_demo.py --trigger A2`. Focused tests are `tests/test_insurance_coverage_review.py`, `tests/test_insurance_coverage_workflow.py`, and `tests/test_insurance_intake.py`.
 
 ### Harness / App Split
 
@@ -553,14 +561,16 @@ harness-to-app dependency:
 
 - One customer-household profile per authenticated `user_id + customer_id`.
 - Household task with member-level data; facts never receive default values.
-- DRAFT conservative/baseline/comprehensive parameters are centralized and
-  versioned; they are not industry standards.
-- Coverage review has collection skills, six parallel dimension skills, then
-  independent customer/internal report skills.
-- Customer and internal reports use separate Pydantic schemas and renderers so
-  internal psychology/confidence data cannot leak through prompt filtering.
-- `MockCustomerDataAdapter` makes the external-data boundary explicit without
-  presenting synthetic values as authoritative data.
+- Four Tool ports isolate customer-center, profile, Zhongbaoxin-report, and
+  precise-calculation integrations; deterministic mocks keep local runs complete.
+- The canonical algorithm has eight ordered dimensions, 20 reason codes, 29
+  trigger scenarios, and an auxiliary-only emergency-liquidity metric.
+- The immutable diagnosis kernel feeds independent 3.1, 5.2, and 5.3
+  projections; a consistency gate rejects cross-output drift.
+- Internal Markdown is generated before an explicit agent-review interruption.
+  Customer HTML uses a fixed template and requires the current kernel hash.
+- Fact and trigger revisions selectively invalidate their downstream DAG;
+  narrative-only revisions preserve the calculated kernel.
 - Gateway endpoints live under `/api/insurance`; model-visible tools are in the
   `insurance` tool group configured by `config.example.yaml`.
 

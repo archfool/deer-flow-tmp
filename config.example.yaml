@@ -65,6 +65,25 @@ max_recursion_limit: 1000
 # Configure available LLM models for the agent to use
 
 models:
+  # Project default: MiniMax-M2.5 through Alibaba Cloud Model Studio.
+  # The coverage-review narrative harness uses thinking-mode Function Calling
+  # with a single Pydantic tool and validates the returned tool call locally.
+  - name: minimax-m2.5-main
+    display_name: MiniMax M2.5 (DashScope)
+    use: langchain_openai:ChatOpenAI
+    model: MiniMax-M2.5
+    api_key: $DASHSCOPE_API_KEY
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    request_timeout: 180.0
+    max_retries: 2
+    max_tokens: 8192
+    temperature: 0.1
+    supports_vision: false
+    supports_thinking: true
+    when_thinking_enabled:
+      extra_body:
+        enable_thinking: true
+
   # Example: Volcengine (Doubao) model
   # - name: doubao-seed-1.8
   #   display_name: Doubao-Seed-1.8
